@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum LeadStage {
+  NEW
+  ENGAGED
+  INTERESTED
+  QUALIFIED
+  HOT
+  APPLICATION_STARTED
+  DROPPED
+  CONVERTED
+}
+
+enum ActionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model Lead {
+  id               String       @id @default(uuid())
+  name             String
+  phone            String       @unique
+  salary           Float?
+  employmentType   String?
+  loanAmount       Float?
+  source           String
+  currentStage     LeadStage    @default(NEW)
+  assignedTo       String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  events           LeadEvent[]
+  scores           LeadScore?
+  actions          LeadAction[]
+
+  @@map("leads")
+}
+
+model LeadEvent {
+  id           String    @id @default(uuid())
+  leadId       String
+  eventType    String
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+
+  lead         Lead      @relation(fields: [leadId], references: [id])
+
+  @@map("lead_events")
+}
+
+model LeadScore {
+  id                  String    @id @default(uuid())
+  leadId              String    @unique
+
+  intentScore         Int       @default(0)
+  eligibilityScore    Int       @default(0)
+  engagementScore     Int       @default(0)
+  riskScore           Int       @default(0)
+  finalScore          Int       @default(0)
+
+  updatedAt           DateTime  @updatedAt
+
+  lead                Lead      @relation(fields: [leadId], references: [id])
+
+  @@map("lead_scores")
+}
+
+model LeadAction {
+  id              String         @id @default(uuid())
+  leadId          String
+
+  actionType      String
+  status          ActionStatus   @default(PENDING)
+
+  generatedBy     String
+  reason          String?
+
+  createdAt       DateTime       @default(now())
+
+  lead            Lead           @relation(fields: [leadId], references: [id])
+
+  @@map("lead_actions")
+}
+
+model SalesAgent {
+  id          String    @id @default(uuid())
+
+  name        String
+  language    String
+  region      String
+  workload    Int       @default(0)
+
+  createdAt   DateTime  @default(now())
+
+  @@map("sales_agents")
+}
