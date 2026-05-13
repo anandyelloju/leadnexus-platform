@@ -6,6 +6,8 @@ import { LeadsModule } from './modules/leads/leads.module';
 import { EventsModule } from './modules/events/events.module';
 import { ScoringModule } from './modules/scoring/scoring.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
+import { AgentsModule } from './modules/agents/agents.module';
+import { ActionsModule } from './modules/actions/actions.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { WorkflowsModule } from './modules/workflows/workflows.module';
     EventsModule,
     ScoringModule,
     WorkflowsModule,
+    AgentsModule,
+    ActionsModule,
   ],
 })
 export class AppModule {}
