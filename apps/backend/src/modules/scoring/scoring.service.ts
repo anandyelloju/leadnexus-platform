@@ -1,41 +1,76 @@
 import { Injectable } from '@nestjs/common';
+
 import { PrismaService } from '../../database/prisma.service';
 import { EVENT_SCORE_MAP } from './constants/scoring-rules.constant';
+import { getLeadStage } from './constants/lead-stage.constant';
+import { WorkflowsService } from '../workflows/workflows.service';
 
 @Injectable()
 export class ScoringService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly workflowsService: WorkflowsService,
+  ) {}
 
-  async processLeadScore(leadId: string, eventType: string) {
-    const scoreImpact = EVENT_SCORE_MAP[eventType] || 0;
+  async processLeadScore(
+    leadId: string,
+    eventType: string,
+  ) {
+    const scoreImpact =
+      EVENT_SCORE_MAP[eventType] || 0;
 
-    const existingScore = await this.prisma.leadScore.findUnique({
-      where: {
-        leadId,
-      },
-    });
+    const existingScore =
+      await this.prisma.leadScore.findUnique({
+        where: {
+          leadId,
+        },
+      });
+
+    let finalScore = scoreImpact;
 
     if (!existingScore) {
-      return this.prisma.leadScore.create({
+      await this.prisma.leadScore.create({
         data: {
           leadId,
           intentScore: scoreImpact,
-          finalScore: scoreImpact,
+          finalScore,
+        },
+      });
+    } else {
+      finalScore =
+        existingScore.finalScore + scoreImpact;
+
+      await this.prisma.leadScore.update({
+        where: {
+          leadId,
+        },
+        data: {
+          intentScore:
+            existingScore.intentScore + scoreImpact,
+          finalScore,
         },
       });
     }
 
-    const updatedIntent =
-      existingScore.intentScore + scoreImpact;
+    const currentStage = getLeadStage(finalScore);
 
-    return this.prisma.leadScore.update({
+    await this.prisma.lead.update({
       where: {
-        leadId,
+        id: leadId,
       },
       data: {
-        intentScore: updatedIntent,
-        finalScore: updatedIntent,
+        currentStage,
       },
     });
+
+    await this.workflowsService.triggerLeadWorkflow(
+        leadId,
+        currentStage,
+    );
+    
+    return {
+      finalScore,
+      currentStage,
+    };
   }
 }
