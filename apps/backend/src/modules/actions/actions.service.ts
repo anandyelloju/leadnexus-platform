@@ -30,4 +30,15 @@ export class ActionsService {
       },
     });
   }
+
+  async completeAction(actionId: string) {
+    return this.prisma.leadAction.update({
+      where: {
+        id: actionId,
+      },
+      data: {
+        status: 'COMPLETED',
+      },
+    });
+  }
 }

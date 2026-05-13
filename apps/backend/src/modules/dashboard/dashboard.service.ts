@@ -4,7 +4,7 @@ import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getFunnelMetrics() {
     const stages = [
@@ -54,12 +54,11 @@ export class DashboardService {
   }
 
   async getPendingActionsCount() {
-    const count =
-      await this.prisma.leadAction.count({
-        where: {
-          status: 'PENDING',
-        },
-      });
+    const count = await this.prisma.leadAction.count({
+      where: {
+        status: 'PENDING',
+      },
+    });
 
     return {
       pendingActions: count,

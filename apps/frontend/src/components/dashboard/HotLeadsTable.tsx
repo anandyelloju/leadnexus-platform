@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 interface Props {
   leads: any[];
 }
@@ -27,7 +29,12 @@ export default function HotLeadsTable({
               key={lead.id}
               className="border-b last:border-b-0 hover:bg-slate-50"
             >
-              <td className="py-3">{lead.name}</td>
+              <td className="py-3"><Link
+                href={`/leads/${lead.id}`}
+                className="text-blue-600 underline"
+              >
+                {lead.name}
+              </Link></td>
               <td className="py-3">{lead.phone}</td>
               <td className="py-3">{lead.currentStage}</td>
               <td className="py-3">

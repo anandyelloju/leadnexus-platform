@@ -4,7 +4,7 @@ import { CreateLeadDto } from './dto/create-lead.dto';
 
 @Injectable()
 export class LeadsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async createLead(createLeadDto: CreateLeadDto) {
     return this.prisma.lead.create({
@@ -25,7 +25,16 @@ export class LeadsService {
       where: { id },
       include: {
         scores: true,
-        actions: true,
+        actions: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+        events: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
       },
     });
 

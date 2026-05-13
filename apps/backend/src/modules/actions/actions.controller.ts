@@ -1,4 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
+import { Param, Patch } from '@nestjs/common';
 
 import { ActionsService } from './actions.service';
 
@@ -6,7 +7,7 @@ import { ActionsService } from './actions.service';
 export class ActionsController {
   constructor(
     private readonly actionsService: ActionsService,
-  ) {}
+  ) { }
 
   @Get()
   async getAllActions() {
@@ -16,5 +17,12 @@ export class ActionsController {
   @Get('pending')
   async getPendingActions() {
     return this.actionsService.getPendingActions();
+  }
+
+  @Patch(':id/complete')
+  async completeAction(
+    @Param('id') id: string,
+  ) {
+    return this.actionsService.completeAction(id);
   }
 }

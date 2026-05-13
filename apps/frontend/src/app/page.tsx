@@ -6,6 +6,7 @@ import FunnelChart from '@/components/dashboard/FunnelChart';
 import HotLeadsTable from '@/components/dashboard/HotLeadsTable';
 import SummaryCards from '@/components/dashboard/SummaryCards';
 import AIRecommendationCard from '@/components/dashboard/AIRecommendationCard';
+import PendingActionsTable from '@/components/dashboard/PendingActionsTable';
 
 import { dashboardService } from '@/services/dashboard.service';
 
@@ -18,6 +19,8 @@ export default function DashboardPage() {
 
   const [recommendation, setRecommendation] = useState('');
 
+  const [pendingActions, setPendingActions] = useState([]);
+
   useEffect(() => {
     loadDashboard();
   }, []);
@@ -28,22 +31,25 @@ export default function DashboardPage() {
         summaryData,
         funnelData,
         hotLeadsData,
+        pendingActionsData,
       ] = await Promise.all([
         dashboardService.getSummary(),
         dashboardService.getFunnelMetrics(),
         dashboardService.getHotLeads(),
+        dashboardService.getPendingActions(),
       ]);
 
       setSummary(summaryData);
       setFunnelMetrics(funnelData);
       setHotLeads(hotLeadsData);
+      setPendingActions(Array.isArray(pendingActionsData) ? pendingActionsData : []);
 
       if (hotLeadsData.length > 0) {
-        const aiResponse = await dashboardService.getLeadRecommendation( 
+        const aiResponse = await dashboardService.getLeadRecommendation(
           hotLeadsData[0].id,
         );
 
-      setRecommendation(aiResponse.recommendation || 'No recommendation available');
+        setRecommendation(aiResponse.recommendation || 'No recommendation available');
       }
 
     } catch (error) {
@@ -68,7 +74,12 @@ export default function DashboardPage() {
 
         <HotLeadsTable leads={hotLeads} />
 
-        {recommendation && (<AIRecommendationCard recommendation={recommendation}/>)}
+        {recommendation && (<AIRecommendationCard recommendation={recommendation} />)}
+
+        <PendingActionsTable
+          actions={pendingActions}
+          onRefresh={loadDashboard}
+        />
       </div>
     </main>
   );
