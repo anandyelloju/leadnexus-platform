@@ -8,6 +8,7 @@ import { ScoringModule } from './modules/scoring/scoring.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
 import { AgentsModule } from './modules/agents/agents.module';
 import { ActionsModule } from './modules/actions/actions.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ActionsModule } from './modules/actions/actions.module';
     WorkflowsModule,
     AgentsModule,
     ActionsModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}
