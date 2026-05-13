@@ -9,6 +9,7 @@ import { WorkflowsModule } from './modules/workflows/workflows.module';
 import { AgentsModule } from './modules/agents/agents.module';
 import { ActionsModule } from './modules/actions/actions.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     AgentsModule,
     ActionsModule,
     DashboardModule,
+    AiModule,
   ],
 })
 export class AppModule {}

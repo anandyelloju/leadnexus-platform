@@ -23,4 +23,12 @@ export const dashboardService = {
 
     return response.data;
   },
+
+  async getLeadRecommendation(leadId: string) {
+    const response = await api.get(
+      `/ai/lead-summary/${leadId}`,
+    );
+
+    return response.data;
+  },
 };

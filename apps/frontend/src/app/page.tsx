@@ -5,16 +5,18 @@ import { useEffect, useState } from 'react';
 import FunnelChart from '@/components/dashboard/FunnelChart';
 import HotLeadsTable from '@/components/dashboard/HotLeadsTable';
 import SummaryCards from '@/components/dashboard/SummaryCards';
+import AIRecommendationCard from '@/components/dashboard/AIRecommendationCard';
 
 import { dashboardService } from '@/services/dashboard.service';
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState<any>(null);
 
-  const [funnelMetrics, setFunnelMetrics] =
-    useState([]);
+  const [funnelMetrics, setFunnelMetrics] = useState([]);
 
   const [hotLeads, setHotLeads] = useState([]);
+
+  const [recommendation, setRecommendation] = useState('');
 
   useEffect(() => {
     loadDashboard();
@@ -35,6 +37,15 @@ export default function DashboardPage() {
       setSummary(summaryData);
       setFunnelMetrics(funnelData);
       setHotLeads(hotLeadsData);
+
+      if (hotLeadsData.length > 0) {
+        const aiResponse = await dashboardService.getLeadRecommendation( 
+          hotLeadsData[0].id,
+        );
+
+      setRecommendation(aiResponse.recommendation || 'No recommendation available');
+      }
+
     } catch (error) {
       console.error(error);
     }
@@ -56,6 +67,8 @@ export default function DashboardPage() {
         <FunnelChart data={funnelMetrics} />
 
         <HotLeadsTable leads={hotLeads} />
+
+        {recommendation && (<AIRecommendationCard recommendation={recommendation}/>)}
       </div>
     </main>
   );
