@@ -19,7 +19,7 @@ import { AiModule } from './modules/ai/ai.module';
       validationSchema: Joi.object({
         DATABASE_URL: Joi.string().required(),
         PORT: Joi.number().required(),
-        OPENAI_API_KEY: Joi.string().required(),
+        GROQ_API_KEY: Joi.string().required(),
       }),
     }),
     PrismaModule,

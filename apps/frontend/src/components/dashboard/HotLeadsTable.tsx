@@ -7,6 +7,8 @@ interface Props {
 export default function HotLeadsTable({
   leads,
 }: Props) {
+  const leadRows = Array.isArray(leads) ? leads : [];
+
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <h2 className="mb-4 text-lg font-semibold text-slate-900">
@@ -24,7 +26,7 @@ export default function HotLeadsTable({
         </thead>
 
         <tbody>
-          {leads.map((lead) => (
+          {leadRows.map((lead) => (
             <tr
               key={lead.id}
               className="border-b last:border-b-0 hover:bg-slate-50"

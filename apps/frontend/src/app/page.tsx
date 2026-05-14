@@ -1,105 +1,36 @@
-'use client';
+import Link from 'next/link';
 
-import { useEffect, useState } from 'react';
-
-import FunnelChart from '@/components/dashboard/FunnelChart';
-import HotLeadsTable from '@/components/dashboard/HotLeadsTable';
-import SummaryCards from '@/components/dashboard/SummaryCards';
-import AIRecommendationCard from '@/components/dashboard/AIRecommendationCard';
-import PendingActionsTable from '@/components/dashboard/PendingActionsTable';
-
-import { dashboardService } from '@/services/dashboard.service';
-
-export default function DashboardPage() {
-  const [summary, setSummary] = useState<any>(null);
-
-  const [funnelMetrics, setFunnelMetrics] = useState<any[]>([]);
-
-  const [hotLeads, setHotLeads] = useState<any[]>([]);
-
-  const [recommendation, setRecommendation] = useState('');
-
-  const [pendingActions, setPendingActions] = useState<any[]>([]);
-
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    loadDashboard();
-  }, []);
-
-  async function loadDashboard() {
-    try {
-      const [
-        summaryData,
-        funnelData,
-        hotLeadsData,
-        pendingActionsData,
-      ] = await Promise.all([
-        dashboardService.getSummary(),
-        dashboardService.getFunnelMetrics(),
-        dashboardService.getHotLeads(),
-        dashboardService.getPendingActions(),
-      ]);
-
-      setSummary(summaryData);
-      setFunnelMetrics(funnelData);
-      setHotLeads(hotLeadsData);
-      setPendingActions(Array.isArray(pendingActionsData) ? pendingActionsData : []);
-
-      if (hotLeadsData.length > 0) {
-        const aiResponse = await dashboardService.getLeadRecommendation(
-          hotLeadsData[0].id,
-        );
-
-        setRecommendation(aiResponse.recommendation || 'No recommendation available');
-      }
-
-    } catch (error) {
-      console.error(error);
-      setError('Failed to load dashboard');
-    }
-  }
-
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-100">
-        <div className="text-center">
-          <p className="text-xl font-semibold text-red-600">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 rounded bg-slate-900 px-4 py-2 text-white"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!summary) {
-    return <div>Loading dashboard...</div>;
-  }
-
+export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-slate-100 text-slate-900 p-8">
-      <div className="mx-auto max-w-7xl space-y-8">
-        <h1 className="text-3xl font-bold text-slate-900">
-          LeadNexus Dashboard
+    <main className="min-h-screen bg-slate-950 text-white">
+      <section className="mx-auto flex max-w-6xl flex-col items-center justify-center px-6 py-32 text-center">
+        <h1 className="max-w-4xl text-5xl font-bold leading-tight text-white">
+          Instant Personal Loans
+          Powered by Intelligent Banking
         </h1>
 
-        <SummaryCards summary={summary} />
+        <p className="mt-6 max-w-2xl text-lg text-slate-300">
+          Get personalized loan offers with
+          faster approvals and AI-assisted
+          support.
+        </p>
 
-        <FunnelChart data={funnelMetrics} />
+        <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+          <Link
+            href="/apply"
+            className="rounded-2xl bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-violet-500"
+          >
+            Apply Now
+          </Link>
 
-        <HotLeadsTable leads={hotLeads} />
-
-        {recommendation && (<AIRecommendationCard recommendation={recommendation} />)}
-
-        <PendingActionsTable
-          actions={pendingActions}
-          onRefresh={loadDashboard}
-        />
-      </div>
+          <Link
+            href="/emi-calculator"
+            className="rounded-2xl border border-white/20 bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+          >
+            Calculate EMI
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }
