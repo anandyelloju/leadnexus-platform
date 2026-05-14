@@ -13,13 +13,15 @@ import { dashboardService } from '@/services/dashboard.service';
 export default function DashboardPage() {
   const [summary, setSummary] = useState<any>(null);
 
-  const [funnelMetrics, setFunnelMetrics] = useState([]);
+  const [funnelMetrics, setFunnelMetrics] = useState<any[]>([]);
 
-  const [hotLeads, setHotLeads] = useState([]);
+  const [hotLeads, setHotLeads] = useState<any[]>([]);
 
   const [recommendation, setRecommendation] = useState('');
 
-  const [pendingActions, setPendingActions] = useState([]);
+  const [pendingActions, setPendingActions] = useState<any[]>([]);
+
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadDashboard();
@@ -54,7 +56,24 @@ export default function DashboardPage() {
 
     } catch (error) {
       console.error(error);
+      setError('Failed to load dashboard');
     }
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-100">
+        <div className="text-center">
+          <p className="text-xl font-semibold text-red-600">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded bg-slate-900 px-4 py-2 text-white"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!summary) {

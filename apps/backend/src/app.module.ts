@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import * as Joi from 'joi';
 import { PrismaModule } from './database/prisma.module';
 import { HealthModule } from './modules/health/health.module';
 import { LeadsModule } from './modules/leads/leads.module';
@@ -15,6 +16,11 @@ import { AiModule } from './modules/ai/ai.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validationSchema: Joi.object({
+        DATABASE_URL: Joi.string().required(),
+        PORT: Joi.number().required(),
+        OPENAI_API_KEY: Joi.string().required(),
+      }),
     }),
     PrismaModule,
     HealthModule,
@@ -28,4 +34,4 @@ import { AiModule } from './modules/ai/ai.module';
     AiModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }
