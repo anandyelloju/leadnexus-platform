@@ -1,15 +1,56 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
+import { UpdateLeadDto } from './dto/update-lead.dto';
 
 @Injectable()
 export class LeadsService {
   constructor(private readonly prisma: PrismaService) { }
 
   async createLead(createLeadDto: CreateLeadDto) {
-    return this.prisma.lead.create({
-      data: createLeadDto,
-    });
+    try {
+      return await this.prisma.lead.create({
+        data: createLeadDto,
+      });
+    } catch (error: any) {
+      console.error('Lead creation error:', error);
+      
+      if (error.code === 'P2002') {
+        // Unique constraint violation
+        const field = error.meta?.target?.[0] || 'unknown field';
+        throw new BadRequestException(
+          `Lead with this ${field} already exists`,
+        );
+      }
+      
+      if (error.code === 'P2014' || error.code === 'P2003') {
+        // Foreign key constraint violation
+        throw new BadRequestException('Invalid reference in the data provided');
+      }
+      
+      throw error;
+    }
+  }
+
+  async updateLead(id: string, updateLeadDto: UpdateLeadDto) {
+    try {
+      return await this.prisma.lead.update({
+        where: { id },
+        data: updateLeadDto,
+      });
+    } catch (error: any) {
+      console.error('Lead update error:', error);
+
+      if (error.code === 'P2025') {
+        throw new NotFoundException('Lead not found');
+      }
+
+      throw error;
+    }
   }
 
   async getAllLeads() {

@@ -26,6 +26,15 @@ export class HttpExceptionFilter
                 ? exception.getResponse()
                 : 'Internal server error';
 
+        // Log all errors for debugging
+        console.error('Error Details:', {
+            status,
+            message,
+            path: request.url,
+            error: exception instanceof Error ? exception.message : String(exception),
+            stack: exception instanceof Error ? exception.stack : undefined,
+        });
+
         response.status(status).json({
             success: false,
             statusCode: status,

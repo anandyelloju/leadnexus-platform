@@ -2,12 +2,12 @@ import {
   IsEnum,
   IsNumber,
   IsOptional,
-  IsPhoneNumber,
   IsString,
+  Matches,
   Min,
 } from 'class-validator';
 
-enum EmploymentType {
+export enum EmploymentType {
   SALARIED = 'SALARIED',
   SELF_EMPLOYED = 'SELF_EMPLOYED',
 }
@@ -17,6 +17,9 @@ export class CreateLeadDto {
   name!: string;
 
   @IsString()
+  @Matches(/^[0-9+\\-\\s()]{10,}$/, {
+    message: 'phone must be a valid phone number',
+  })
   phone!: string;
 
   @IsOptional()

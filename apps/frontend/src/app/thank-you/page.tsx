@@ -14,10 +14,10 @@ export default function ThankYouPage() {
                 </p>
 
                 <Link
-                    href="/dashboard"
+                    href="/welcome"
                     className="mt-8 inline-block rounded-2xl bg-black px-7 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
                 >
-                    View Dashboard
+                    Go back to Home
                 </Link>
             </div>
         </main>

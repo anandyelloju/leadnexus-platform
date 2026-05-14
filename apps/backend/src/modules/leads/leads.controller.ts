@@ -3,9 +3,11 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { CreateLeadDto } from './dto/create-lead.dto';
+import { UpdateLeadDto } from './dto/update-lead.dto';
 import { LeadsService } from './leads.service';
 
 @Controller('leads')
@@ -15,6 +17,14 @@ export class LeadsController {
   @Post()
   async createLead(@Body() createLeadDto: CreateLeadDto) {
     return this.leadsService.createLead(createLeadDto);
+  }
+
+  @Patch(':id')
+  async updateLead(
+    @Param('id') id: string,
+    @Body() updateLeadDto: UpdateLeadDto,
+  ) {
+    return this.leadsService.updateLead(id, updateLeadDto);
   }
 
   @Get()

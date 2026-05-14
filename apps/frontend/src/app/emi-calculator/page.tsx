@@ -1,13 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { eventsService } from '@/services/events.service';
-
 export default function EmiCalculatorPage() {
-    const router = useRouter();
-
     const [loanAmount, setLoanAmount] =
         useState(500000);
 
@@ -28,31 +23,6 @@ export default function EmiCalculatorPage() {
             tenure,
         ) -
             1);
-
-    async function handleContinue() {
-        const leadId =
-            localStorage.getItem('leadId');
-
-        if (leadId) {
-            await eventsService.createEvent({
-                leadId,
-                eventType:
-                    'EMI_CALCULATOR_USED',
-                metadata: {
-                    loanAmount,
-                    tenure,
-                },
-            });
-
-            await eventsService.createEvent({
-                leadId,
-                eventType:
-                    'CALLBACK_REQUESTED',
-            });
-        }
-
-        router.push('/thank-you');
-    }
 
     return (
         <main className="min-h-screen bg-slate-100 p-8">
@@ -120,12 +90,6 @@ export default function EmiCalculatorPage() {
                         </p>
                     </div>
 
-                    <button
-                        onClick={handleContinue}
-                        className="w-full rounded-2xl bg-black py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-900"
-                    >
-                        Request Callback
-                    </button>
                 </div>
             </div>
         </main>

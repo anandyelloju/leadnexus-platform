@@ -1,44 +1,58 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { eventsService } from '@/services/events.service';
 import { leadsService } from '@/services/leads.service';
 
 export default function ApplyPage() {
     const router = useRouter();
+    const [leadId, setLeadId] = useState<string | null>(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        phone: '',
+        salary: '',
+        loanAmount: '',
+    });
+    const [loading, setLoading] = useState(false);
 
-    const [formData, setFormData] =
-        useState({
-            name: '',
-            phone: '',
-            salary: '',
-            loanAmount: '',
-        });
+    useEffect(() => {
+        const existingLeadId = localStorage.getItem('leadId');
+        const existingLeadName = localStorage.getItem('leadName') || '';
+        const existingLeadPhone = localStorage.getItem('leadPhone') || '';
 
-    const [loading, setLoading] =
-        useState(false);
+        if (!existingLeadId) {
+            router.push('/start');
+            return;
+        }
+
+        setLeadId(existingLeadId);
+        setFormData((current) => ({
+            ...current,
+            name: existingLeadName,
+            phone: existingLeadPhone,
+        }));
+    }, [router]);
 
     async function handleSubmit(
         e: React.FormEvent,
     ) {
         e.preventDefault();
 
+        if (!leadId) {
+            router.push('/start');
+            return;
+        }
+
         try {
             setLoading(true);
 
-            const lead =
-                await leadsService.createLead({
-                    name: formData.name,
-                    phone: formData.phone,
-                    salary: Number(formData.salary),
-                    loanAmount: Number(
-                        formData.loanAmount,
-                    ),
-                    employmentType: 'SALARIED',
-                    source: 'WEBSITE',
-                });
+            const lead = await leadsService.updateLead(leadId, {
+                salary: Number(formData.salary),
+                loanAmount: Number(formData.loanAmount),
+                employmentType: 'SALARIED',
+            });
 
             await eventsService.createEvent({
                 leadId: lead.id,
@@ -53,12 +67,7 @@ export default function ApplyPage() {
                 },
             });
 
-            localStorage.setItem(
-                'leadId',
-                lead.id,
-            );
-
-            router.push('/emi-calculator');
+            router.push('/thank-you');
         } finally {
             setLoading(false);
         }
@@ -79,7 +88,10 @@ export default function ApplyPage() {
                         type="text"
                         placeholder="Full Name"
                         required
-                        className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10"
+                        value={formData.name}
+                        disabled={Boolean(leadId)}
+                        readOnly={Boolean(leadId)}
+                        className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10 disabled:cursor-not-allowed disabled:bg-slate-100"
                         onChange={(e) =>
                             setFormData({
                                 ...formData,
@@ -92,7 +104,10 @@ export default function ApplyPage() {
                         type="text"
                         placeholder="Phone Number"
                         required
-                        className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10"
+                        value={formData.phone}
+                        disabled={Boolean(leadId)}
+                        readOnly={Boolean(leadId)}
+                        className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10 disabled:cursor-not-allowed disabled:bg-slate-100"
                         onChange={(e) =>
                             setFormData({
                                 ...formData,

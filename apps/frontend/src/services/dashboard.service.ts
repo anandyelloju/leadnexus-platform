@@ -3,17 +3,17 @@ import { api } from '@/lib/api';
 export const dashboardService = {
   async getSummary() {
     const response = await api.get('/dashboard/summary');
-    return response.data;
+    return response.data.data;
   },
 
   async getFunnelMetrics() {
     const response = await api.get('/dashboard/funnel');
-    return response.data;
+    return response.data.data;
   },
 
   async getHotLeads() {
     const response = await api.get('/dashboard/hot-leads');
-    return response.data;
+    return response.data.data;
   },
 
   async getPendingActions() {
@@ -21,7 +21,7 @@ export const dashboardService = {
       '/dashboard/pending-actions',
     );
 
-    return response.data;
+    return response.data.data;
   },
 
   async getLeadRecommendation(leadId: string) {
@@ -29,6 +29,6 @@ export const dashboardService = {
       `/ai/lead-summary/${leadId}`,
     );
 
-    return response.data;
+    return response.data.data;
   },
 };

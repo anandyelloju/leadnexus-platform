@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import FunnelChart from '@/components/dashboard/FunnelChart';
 import HotLeadsTable from '@/components/dashboard/HotLeadsTable';
@@ -22,8 +23,16 @@ export default function DashboardPage() {
     const [pendingActions, setPendingActions] = useState<any[]>([]);
 
     const [error, setError] = useState('');
+    const router = useRouter();
 
     useEffect(() => {
+        const isAdmin = localStorage.getItem('isAdmin');
+
+        if (!isAdmin) {
+            router.push('/admin/login');
+            return;
+        }
+
         loadDashboard();
     }, []);
 
