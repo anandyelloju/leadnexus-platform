@@ -15,6 +15,8 @@ export default function ApplyPage() {
         salary: '',
         loanAmount: '',
     });
+    const [documentFile, setDocumentFile] = useState<File | null>(null);
+    const [uploadMessage, setUploadMessage] = useState('');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -34,6 +36,37 @@ export default function ApplyPage() {
             phone: existingLeadPhone,
         }));
     }, [router]);
+
+    async function handleUpload() {
+        if (!leadId) {
+            router.push('/start');
+            return;
+        }
+
+        if (!documentFile) {
+            setUploadMessage('Please select a document to upload.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await eventsService.createEvent({
+                leadId,
+                eventType: 'DOCUMENT_UPLOADED',
+                metadata: {
+                    fileName: documentFile.name,
+                    documentType: 'income_proof',
+                },
+            });
+            setUploadMessage('Document uploaded successfully.');
+            setDocumentFile(null);
+        } catch (error) {
+            console.error('Document upload failed', error);
+            setUploadMessage('Unable to upload document at this time.');
+        } finally {
+            setLoading(false);
+        }
+    }
 
     async function handleSubmit(
         e: React.FormEvent,
@@ -128,6 +161,37 @@ export default function ApplyPage() {
                             })
                         }
                     />
+
+                    <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <label className="text-sm font-semibold text-slate-800">
+                            Upload Income Proof
+                        </label>
+                        <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10"
+                            onChange={(e) =>
+                                setDocumentFile(
+                                    e.target.files?.[0] ?? null,
+                                )
+                            }
+                        />
+                        <button
+                            type="button"
+                            onClick={handleUpload}
+                            disabled={loading}
+                            className="w-full rounded-2xl bg-slate-900 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            {loading
+                                ? 'Uploading...'
+                                : 'Upload Document'}
+                        </button>
+                        {uploadMessage ? (
+                            <p className="text-sm text-slate-600">
+                                {uploadMessage}
+                            </p>
+                        ) : null}
+                    </div>
 
                     <input
                         type="number"

@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
@@ -12,7 +13,7 @@ import { LeadsService } from './leads.service';
 
 @Controller('leads')
 export class LeadsController {
-  constructor(private readonly leadsService: LeadsService) {}
+  constructor(private readonly leadsService: LeadsService) { }
 
   @Post()
   async createLead(@Body() createLeadDto: CreateLeadDto) {
@@ -30,6 +31,15 @@ export class LeadsController {
   @Get()
   async getAllLeads() {
     return this.leadsService.getAllLeads();
+  }
+
+  @Get('phone/search')
+  async findLeadByPhone(
+    @Query('phone') phone: string,
+  ) {
+    return this.leadsService.findLeadByPhone(
+      phone,
+    );
   }
 
   @Get(':id')

@@ -17,8 +17,9 @@ export class CreateLeadDto {
   name!: string;
 
   @IsString()
-  @Matches(/^[0-9+\\-\\s()]{10,}$/, {
-    message: 'phone must be a valid phone number',
+  @Matches(/^[6-9]\d{9}$/, {
+    message:
+      'Phone number must be valid Indian mobile number',
   })
   phone!: string;
 

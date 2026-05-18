@@ -18,7 +18,7 @@ export class LeadsService {
       });
     } catch (error: any) {
       console.error('Lead creation error:', error);
-      
+
       if (error.code === 'P2002') {
         // Unique constraint violation
         const field = error.meta?.target?.[0] || 'unknown field';
@@ -26,12 +26,12 @@ export class LeadsService {
           `Lead with this ${field} already exists`,
         );
       }
-      
+
       if (error.code === 'P2014' || error.code === 'P2003') {
         // Foreign key constraint violation
         throw new BadRequestException('Invalid reference in the data provided');
       }
-      
+
       throw error;
     }
   }
@@ -84,5 +84,13 @@ export class LeadsService {
     }
 
     return lead;
+  }
+
+  async findLeadByPhone(phone: string) {
+    return this.prisma.lead.findUnique({
+      where: {
+        phone,
+      },
+    });
   }
 }

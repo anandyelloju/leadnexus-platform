@@ -15,4 +15,9 @@ export const leadsService = {
         const response = await api.patch(`/leads/${id}`, payload);
         return response.data.data;
     },
+
+    async findLeadByPhone(phone: string) {
+        const response = await api.get(`/leads/phone/search?phone=${phone}`,);
+        return response.data.data;
+    },
 };

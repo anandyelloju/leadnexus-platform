@@ -99,6 +99,24 @@ export default function WelcomePage() {
                     </div>
                 </div>
 
+                <section className="mt-10 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Loan Offers</p>
+                            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Compare curated loan offers from trusted banks</h2>
+                            <p className="mt-3 text-slate-600">
+                                Get a quick view of competitive interest rates, repayment terms, and personalized loan packages selected for your profile.
+                            </p>
+                        </div>
+                        <Link
+                            href="/loan-offers"
+                            className="inline-flex shrink-0 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        >
+                            View Loan Offers
+                        </Link>
+                    </div>
+                </section>
+
                 <section className="mt-12 rounded-xl bg-blue-50 p-6">
                     <p className="text-sm text-blue-800">
                         <strong>Pro Tip:</strong> Using the EMI calculator before applying helps our AI recommend the best interest rates for your specific needs.
