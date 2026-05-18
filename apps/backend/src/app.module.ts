@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './database/prisma.module';
 import { HealthModule } from './modules/health/health.module';
 import { LeadsModule } from './modules/leads/leads.module';
@@ -11,6 +12,7 @@ import { AgentsModule } from './modules/agents/agents.module';
 import { ActionsModule } from './modules/actions/actions.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AiModule } from './modules/ai/ai.module';
+import { LeadMonitoringModule } from './modules/lead-monitoring/lead-monitoring.module';
 
 @Module({
   imports: [
@@ -22,6 +24,7 @@ import { AiModule } from './modules/ai/ai.module';
         GROQ_API_KEY: Joi.string().required(),
       }),
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     HealthModule,
     LeadsModule,
@@ -32,6 +35,7 @@ import { AiModule } from './modules/ai/ai.module';
     ActionsModule,
     DashboardModule,
     AiModule,
+    LeadMonitoringModule,
   ],
 })
 export class AppModule { }

@@ -50,4 +50,8 @@ export const EVENT_SCORE_RULES: Record<
     bucket: 'intent',
     value: 25,
   },
+  [EventType.LEAD_INACTIVE]: {
+    bucket: 'risk',
+    value: -10,
+  },
 };
