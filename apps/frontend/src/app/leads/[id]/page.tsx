@@ -52,12 +52,52 @@ export default function LeadDetailsPage({
             </div>
 
             <div>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-gray-500">
                 Final Score
               </p>
 
               <p className="font-semibold">
                 {lead.scores?.finalScore || 0}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Intent
+              </p>
+
+              <p className="font-semibold">
+                {lead.scores?.intentScore || 0}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Eligibility
+              </p>
+
+              <p className="font-semibold">
+                {lead.scores?.eligibilityScore || 0}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Engagement
+              </p>
+
+              <p className="font-semibold">
+                {lead.scores?.engagementScore || 0}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Risk
+              </p>
+
+              <p className="font-semibold text-red-500">
+                {lead.scores?.riskScore || 0}
               </p>
             </div>
 

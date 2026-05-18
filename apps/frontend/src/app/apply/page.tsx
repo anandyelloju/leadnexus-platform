@@ -14,6 +14,7 @@ export default function ApplyPage() {
         phone: '',
         salary: '',
         loanAmount: '',
+        employmentType: 'SALARIED',
     });
     const [documentFile, setDocumentFile] = useState<File | null>(null);
     const [uploadMessage, setUploadMessage] = useState('');
@@ -84,7 +85,7 @@ export default function ApplyPage() {
             const lead = await leadsService.updateLead(leadId, {
                 salary: Number(formData.salary),
                 loanAmount: Number(formData.loanAmount),
-                employmentType: 'SALARIED',
+                employmentType: formData.employmentType,
             });
 
             await eventsService.createEvent({
@@ -161,6 +162,46 @@ export default function ApplyPage() {
                             })
                         }
                     />
+
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                        <p className="mb-4 text-sm font-semibold text-slate-800">
+                            Employment Type
+                        </p>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-4 text-sm text-slate-900 transition-shadow hover:shadow-sm">
+                                <input
+                                    type="radio"
+                                    name="employmentType"
+                                    value="SALARIED"
+                                    checked={formData.employmentType === 'SALARIED'}
+                                    onChange={() =>
+                                        setFormData({
+                                            ...formData,
+                                            employmentType: 'SALARIED',
+                                        })
+                                    }
+                                    className="h-4 w-4 accent-slate-900"
+                                />
+                                Salaried
+                            </label>
+                            <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-4 text-sm text-slate-900 transition-shadow hover:shadow-sm">
+                                <input
+                                    type="radio"
+                                    name="employmentType"
+                                    value="SELF_EMPLOYED"
+                                    checked={formData.employmentType === 'SELF_EMPLOYED'}
+                                    onChange={() =>
+                                        setFormData({
+                                            ...formData,
+                                            employmentType: 'SELF_EMPLOYED',
+                                        })
+                                    }
+                                    className="h-4 w-4 accent-slate-900"
+                                />
+                                Business / Self-employed
+                            </label>
+                        </div>
+                    </div>
 
                     <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                         <label className="text-sm font-semibold text-slate-800">

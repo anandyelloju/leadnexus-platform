@@ -23,12 +23,20 @@ export default function WelcomePage() {
 
         // 2. Fire Behavioral Events: Track that they reached the welcome area
         const trackArrival = async () => {
+            const landingKey = `landingPageViewed:${leadId}`;
+
+            if (localStorage.getItem(landingKey)) {
+                return;
+            }
+
             try {
                 await eventsService.createEvent({
                     leadId,
                     eventType: 'LANDING_PAGE_VIEWED',
                     metadata: { page: 'welcome_portal' }
                 });
+
+                localStorage.setItem(landingKey, '1');
             } catch (err) {
                 console.error('Failed to track arrival event', err);
             }

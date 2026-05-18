@@ -33,9 +33,8 @@ export class EventsService {
       },
     });
 
-    await this.scoringService.processLeadScore(
+    await this.scoringService.calculateLeadScore(
       createEventDto.leadId,
-      createEventDto.eventType,
     );
 
     return event;
