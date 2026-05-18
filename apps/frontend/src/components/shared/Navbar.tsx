@@ -34,7 +34,15 @@ export default function Navbar() {
                     {pathname !== '/' && (
                         <button
                             type="button"
-                            onClick={() => router.back()}
+                            onClick={() => {
+                                // Dispatch a global navigation attempt event so pages can intercept and show confirm modal
+                                try {
+                                    window.dispatchEvent(new CustomEvent('app:attemptNavigate', { detail: { href: undefined } }));
+                                } catch {
+                                    // fallback to router.back if dispatch fails
+                                    router.back();
+                                }
+                            }}
                             className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
                         >
                             Back
