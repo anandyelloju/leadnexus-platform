@@ -1,7 +1,7 @@
 import { api } from '@/lib/api';
 
 export const eventsService = {
-    async createEvent(payload: any) {
+    async createEvent(payload: Record<string, unknown>) {
         const response = await api.post(
             '/events',
             payload,

@@ -12,6 +12,25 @@ export class LeadsService {
   constructor(private readonly prisma: PrismaService) { }
 
   async createLead(createLeadDto: CreateLeadDto) {
+    const existingLead = await this.prisma.lead.findUnique({
+      where: {
+        phone: createLeadDto.phone,
+      },
+    });
+
+    if (existingLead) {
+      if (
+        this.normalizeName(existingLead.name) ===
+        this.normalizeName(createLeadDto.name)
+      ) {
+        return existingLead;
+      }
+
+      throw new BadRequestException(
+        'Lead with this phone already exists',
+      );
+    }
+
     try {
       return await this.prisma.lead.create({
         data: createLeadDto,
@@ -21,7 +40,13 @@ export class LeadsService {
       
       if (error.code === 'P2002') {
         // Unique constraint violation
-        const field = error.meta?.target?.[0] || 'unknown field';
+        const target = error.meta?.target;
+        const field = Array.isArray(target)
+          ? target[0]
+          : typeof target === 'string'
+            ? target
+            : 'field';
+
         throw new BadRequestException(
           `Lead with this ${field} already exists`,
         );
@@ -84,5 +109,9 @@ export class LeadsService {
     }
 
     return lead;
+  }
+
+  private normalizeName(name: string) {
+    return name.trim().replace(/\s+/g, ' ').toLowerCase();
   }
 }

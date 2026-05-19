@@ -14,37 +14,50 @@ export default function SummaryCards({
     {
       title: 'Total Leads',
       value: summary.totalLeads,
+      trend: '+12% from yesterday',
+      tone: 'text-blue-700',
     },
     {
       title: 'Hot Leads',
       value: summary.hotLeads,
+      trend: 'Advisor priority',
+      tone: 'text-rose-700',
     },
     {
       title: 'Converted',
       value: summary.convertedLeads,
+      trend: '+6 this week',
+      tone: 'text-emerald-700',
     },
     {
       title: 'Pending Actions',
       value: summary.pendingActions,
+      trend: 'Needs review',
+      tone: 'text-amber-700',
     },
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-4">
+    <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {cards.map((card) => (
         <div
           key={card.title}
-          className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+          className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm"
         >
-          <h3 className="text-sm text-slate-500">
+          <h3 className="text-xs font-bold uppercase text-slate-500">
             {card.title}
           </h3>
 
-          <p className="mt-2 text-3xl font-bold text-slate-900">
-            {card.value}
-          </p>
+          <div className="mt-2 flex items-end justify-between gap-3">
+            <p className="text-2xl font-bold leading-none text-slate-950">
+              {card.value}
+            </p>
+            <p className={`text-xs font-bold ${card.tone}`}>
+              {card.trend}
+            </p>
+          </div>
         </div>
       ))}
-    </div>
+    </section>
   );
 }

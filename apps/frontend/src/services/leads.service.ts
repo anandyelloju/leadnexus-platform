@@ -6,12 +6,12 @@ export const leadsService = {
         return response.data.data;
     },
 
-    async createLead(payload: any) {
+    async createLead(payload: Record<string, unknown>) {
         const response = await api.post('/leads', payload);
         return response.data.data;
     },
 
-    async updateLead(id: string, payload: any) {
+    async updateLead(id: string, payload: Record<string, unknown>) {
         const response = await api.patch(`/leads/${id}`, payload);
         return response.data.data;
     },
