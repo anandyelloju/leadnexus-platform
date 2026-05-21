@@ -199,7 +199,7 @@ function ProgressIndicator({ currentStep }: { currentStep: number }) {
     return (
         <div>
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
-                <span>Step {currentStep} of 4</span>
+                <span>Step {currentStep} of 2</span>
                 <span>{currentStep === 1 ? 'Application details' : 'Phone verification'}</span>
             </div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
@@ -277,23 +277,14 @@ function SecondaryButton({
 }
 
 export default function StartPage() {
-  const router = useRouter();
+    const router = useRouter();
 
-  const [name, setName] = useState('');
-
-  const [phone, setPhone] =
-    useState('');
-
-  const [otp, setOtp] = useState('');
-
-    const [pendingLead, setPendingLead] =
-        useState<Lead | null>(null);
-
-    const [otp, setOtp] =
-        useState('');
-
-    const [error, setError] =
-        useState('');
+    const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [otp, setOtp] = useState('');
+    const [pendingLead, setPendingLead] = useState<Lead | null>(null);
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     async function handleContinue(event?: React.FormEvent<HTMLFormElement>) {
         event?.preventDefault();

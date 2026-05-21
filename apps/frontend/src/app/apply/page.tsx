@@ -15,6 +15,7 @@ import {
 
 import { eventsService } from '@/services/events.service';
 import { leadsService } from '@/services/leads.service';
+import { saveNewSubmissionReference } from '@/lib/submission-reference';
 
 type IncomeType = 'SALARIED' | 'SELF_EMPLOYED' | 'BUSINESS_OWNER' | 'FREELANCER' | 'RETIRED';
 type DocumentStatus = 'Pending' | 'Uploaded' | 'Verified';
@@ -389,6 +390,7 @@ function UploadCard({
 
 export default function ApplyPage() {
     const router = useRouter();
+    const formStartedTrackedRef = useRef(false);
     const [formData, setFormData] = useState<FormData>(initialFormData);
     const [documents, setDocuments] = useState<Record<DocumentKey, DocumentState | null>>(initialDocuments);
     const [loading, setLoading] = useState(false);
@@ -420,7 +422,19 @@ export default function ApplyPage() {
     useEffect(() => {
         if (!leadId) {
             router.push('/start');
+            return;
         }
+
+        if (formStartedTrackedRef.current) {
+            return;
+        }
+
+        formStartedTrackedRef.current = true;
+        void eventsService.createEvent({
+            leadId,
+            eventType: 'FORM_STARTED',
+            metadata: { source: 'apply_page_opened' },
+        });
     }, [leadId, router]);
 
     const updateField = (field: keyof FormData, value: string) => {
@@ -441,6 +455,18 @@ export default function ApplyPage() {
             progress: 72,
             status: 'Uploaded',
         };
+
+        if (leadId) {
+            void eventsService.createEvent({
+                leadId,
+                eventType: 'DOCUMENT_UPLOADED',
+                metadata: {
+                    documentType: key,
+                    fileName: file.name,
+                    fileSize: file.size,
+                },
+            });
+        }
 
         setDocuments((current) => ({
             ...current,
@@ -491,23 +517,16 @@ export default function ApplyPage() {
 
             await eventsService.createEvent({
                 leadId: lead.id,
-                eventType: 'FORM_STARTED',
-            });
-
-            await eventsService.createEvent({
-                leadId: lead.id,
                 eventType: 'SALARY_ENTERED',
                 metadata: {
                     incomeType: effectiveFormData.incomeType,
                     declaredIncome: primaryIncome,
                     loanPurpose: effectiveFormData.loanPurpose,
                     tenure: effectiveFormData.tenure,
-                    uploadedDocuments: Object.entries(documents)
-                        .filter(([, document]) => Boolean(document))
-                        .map(([key]) => key),
                 },
             });
 
+            saveNewSubmissionReference();
             router.push('/thank-you');
         } finally {
             setLoading(false);

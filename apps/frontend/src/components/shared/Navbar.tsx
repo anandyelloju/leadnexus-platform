@@ -73,13 +73,7 @@ export default function Navbar() {
                         <a href="#features" className="transition hover:text-slate-950">
                             Features
                         </a>
-                        <a href="#security" className="transition hover:text-slate-950">
-                            Security
-                        </a>
-                        <a href="#solutions" className="transition hover:text-slate-950">
-                            Solutions
-                        </a>
-                        <Link href="/callback-request" className="transition hover:text-slate-950">
+                        <Link href="/start" className="transition hover:text-slate-950">
                             Support
                         </Link>
                     </div>
@@ -101,7 +95,7 @@ export default function Navbar() {
                 )}
 
                 <div className="flex items-center gap-2 sm:gap-3">
-                    {pathname !== '/' && !isCustomerJourney && !isAdminRoute && (
+                    {/* {pathname !== '/' && !isCustomerJourney && !isAdminRoute && (
                         <button
                             type="button"
                             onClick={() => router.back()}
@@ -109,7 +103,7 @@ export default function Navbar() {
                         >
                             Back
                         </button>
-                    )}
+                    )} */}
 
                     {isAdmin ? (
                         <>
@@ -142,16 +136,16 @@ export default function Navbar() {
                     ) : isAdminRoute ? (
                         <>
                             <Link
-                                href="/callback-request"
-                                className="hidden rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200 sm:inline-flex"
-                            >
-                                Support
-                            </Link>
-                            <Link
                                 href="/"
                                 className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200"
                             >
                                 Customer Site
+                            </Link>                            
+                            <Link
+                                href="/start"
+                                className="inline-flex rounded-xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-900/20 transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200"
+                            >
+                                Apply Now
                             </Link>
                         </>
                     ) : leadId ? (
@@ -176,7 +170,7 @@ export default function Navbar() {
                                 Logout
                             </button>
                         </>
-                    ) : (
+                    ) : isLandingPage ? (
                         <>
                             <Link
                                 href="/admin/login"
@@ -190,6 +184,22 @@ export default function Navbar() {
                                 className="inline-flex rounded-xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-900/20 transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200"
                             >
                                 Apply Now
+                            </Link>
+                        </>
+                    ) : (
+                        <>
+                            <Link
+                                href="/"
+                                className="hidden rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200 sm:inline-flex"
+                            >
+                                Customer Site
+                            </Link>
+
+                            <Link
+                                href="/admin/login"
+                                className="inline-flex rounded-xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-900/20 transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200"
+                            >
+                                Staff Portal
                             </Link>
                         </>
                     )}

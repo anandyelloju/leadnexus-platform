@@ -9,10 +9,17 @@ import {
     parseEstimateFromSearchParams,
     type EmiEstimate,
 } from '@/lib/financial';
-import { getSavedEmiEstimate } from '@/lib/onboarding-estimate';
+import { saveNewSubmissionReference } from '@/lib/submission-reference';
 import { eventsService } from '@/services/events.service';
 
 type IconName = 'phone' | 'shield' | 'support' | 'check' | 'clock' | 'file' | 'wallet';
+type JourneyStepState = 'complete' | 'current' | 'pending';
+
+type JourneyStep = {
+    label: string;
+    detail: string;
+    state: JourneyStepState;
+};
 
 const iconPaths: Record<IconName, ReactNode> = {
     phone: (
@@ -69,6 +76,56 @@ function Icon({ name, className = 'h-5 w-5' }: { name: IconName; className?: str
     );
 }
 
+function getConsultationJourney(estimate: EmiEstimate | null, loading: boolean): JourneyStep[] {
+    if (!estimate) {
+        return [
+            {
+                label: loading ? 'Submitting Callback Request' : 'Callback Consultation',
+                detail: loading ? 'Sending your request to the advisor queue.' : 'Advisor will call back and help choose the next best loan step.',
+                state: 'current',
+            },
+            {
+                label: 'Profile Review',
+                detail: 'Your onboarding profile and eligibility signals will be reviewed.',
+                state: 'pending',
+            },
+            {
+                label: 'Offer Discussion',
+                detail: 'Available loan options can be discussed during the consultation.',
+                state: 'pending',
+            },
+            {
+                label: 'Application Submission',
+                detail: 'Submit the final application after advisor guidance.',
+                state: 'pending',
+            },
+        ];
+    }
+
+    return [
+        {
+            label: `${formatCurrency(estimate.loanAmount)} Estimate Ready`,
+            detail: `${estimate.tenure} month plan with ${formatCurrency(estimate.estimatedEmi)} estimated EMI.`,
+            state: 'complete',
+        },
+        {
+            label: loading ? 'Submitting Callback Request' : 'Callback Consultation',
+            detail: loading ? 'Sending your request to the advisor queue.' : 'Advisor will review your repayment plan and eligibility signals.',
+            state: 'current',
+        },
+        {
+            label: 'Personalized Offer Review',
+            detail: `Compare repayment, total interest, and tenure fit for ${formatCurrency(estimate.loanAmount)}.`,
+            state: 'pending',
+        },
+        {
+            label: 'Application Submission',
+            detail: 'Continue with documents and final verification after selecting an offer.',
+            state: 'pending',
+        },
+    ];
+}
+
 function CallbackRequestContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -88,7 +145,7 @@ function CallbackRequestContent() {
         );
 
         queueMicrotask(() => {
-            setEstimate(estimateFromUrl ?? getSavedEmiEstimate());
+            setEstimate(estimateFromUrl);
         });
     }, [searchParams]);
 
@@ -115,6 +172,8 @@ function CallbackRequestContent() {
         { icon: 'file' as const, label: 'Encrypted customer information' },
         { icon: 'check' as const, label: 'No impact on credit score' },
     ];
+    const journeyItems = getConsultationJourney(estimate, loading);
+    const currentJourneyStep = journeyItems.find((step) => step.state === 'current') ?? journeyItems.at(-1);
 
     async function handleRequestCallback() {
         const leadId = localStorage.getItem('leadId');
@@ -123,34 +182,26 @@ function CallbackRequestContent() {
             return;
         }
 
-        if (!estimate) {
-            router.push('/emi-calculator');
-            return;
-        }
-
         try {
             setLoading(true);
 
             await eventsService.createEvent({
                 leadId,
-                eventType: 'EMI_CALCULATOR_USED',
-                metadata: {
-                    action: 'callback_confirmed_with_estimate',
-                    estimate,
-                },
-            });
-
-            await eventsService.createEvent({
-                leadId,
                 eventType: 'CALLBACK_REQUESTED',
                 metadata: {
-                    estimateSessionId: estimate.sessionId,
-                    estimatedEmi: estimate.estimatedEmi,
-                    loanAmount: estimate.loanAmount,
-                    tenure: estimate.tenure,
+                    source: estimate ? 'callback_request_with_estimate' : 'direct_callback_request',
+                    ...(estimate
+                        ? {
+                            estimateSessionId: estimate.sessionId,
+                            estimatedEmi: estimate.estimatedEmi,
+                            loanAmount: estimate.loanAmount,
+                            tenure: estimate.tenure,
+                        }
+                        : {}),
                 },
             });
 
+            saveNewSubmissionReference();
             router.push('/thank-you');
         } catch (error) {
             console.error('Callback request failed', error);
@@ -242,7 +293,7 @@ function CallbackRequestContent() {
                                 </>
                             ) : (
                                 <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-                                    No EMI estimate is attached yet. Complete the calculator step first so the advisor can review your selected amount, tenure, and EMI.
+                                    No EMI estimate is attached. The advisor can still call back and help you choose the right amount, tenure, and next step.
                                 </div>
                             )}
                         </section>
@@ -286,25 +337,21 @@ function CallbackRequestContent() {
                                         Application Journey
                                     </p>
                                     <h2 className="mt-1 text-lg font-bold text-slate-950">
-                                        Consultation step
+                                        {currentJourneyStep?.label ?? 'Consultation step'}
                                     </h2>
                                 </div>
                                 <Icon name="clock" className="h-5 w-5 text-blue-700" />
                             </div>
 
                             <ol className="mt-4 grid gap-2 lg:[@media(max-height:760px)]:mt-3">
-                                {[
-                                    { label: 'EMI Estimate Completed', state: estimate ? 'complete' : 'current' },
-                                    { label: 'Callback Consultation', state: estimate ? 'current' : 'pending' },
-                                    { label: 'Application Submission', state: 'pending' },
-                                ].map((step) => (
+                                {journeyItems.map((step, index) => (
                                     <li
                                         key={step.label}
-                                        className="flex items-center gap-3 text-sm font-semibold text-slate-700"
+                                        className="flex gap-3 text-sm text-slate-700"
                                     >
                                         <span
                                             className={[
-                                                'flex h-6 w-6 items-center justify-center rounded-full border text-xs',
+                                                'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold',
                                                 step.state === 'complete'
                                                     ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                                                     : step.state === 'current'
@@ -313,9 +360,12 @@ function CallbackRequestContent() {
                                             ].join(' ')}
                                             aria-hidden="true"
                                         >
-                                            {step.state === 'pending' ? '' : <Icon name="check" className="h-3.5 w-3.5" />}
+                                            {step.state === 'complete' ? <Icon name="check" className="h-3.5 w-3.5" /> : index + 1}
                                         </span>
-                                        {step.label}
+                                        <span>
+                                            <span className="block font-semibold text-slate-800">{step.label}</span>
+                                            <span className="mt-0.5 block text-xs leading-5 text-slate-500">{step.detail}</span>
+                                        </span>
                                     </li>
                                 ))}
                             </ol>
@@ -360,7 +410,7 @@ function CallbackRequestContent() {
                             disabled={loading}
                             className="w-full rounded-2xl bg-blue-700 px-6 py-3.5 text-sm font-semibold text-white shadow-sm shadow-blue-900/20 transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60 lg:[@media(max-height:760px)]:py-3"
                         >
-                            {loading ? 'Requesting callback...' : estimate ? 'Confirm Callback Request' : 'Calculate EMI First'}
+                            {loading ? 'Requesting callback...' : 'Confirm Callback Request'}
                         </button>
                     </aside>
                 </section>

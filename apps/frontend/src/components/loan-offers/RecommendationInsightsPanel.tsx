@@ -7,7 +7,7 @@ export function RecommendationInsightsPanel({ insights, nextBestActions }: Recom
   return (
     <aside className="space-y-5">
       <section className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm shadow-blue-900/5 sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">AI recommendation insights</p>
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">LN recommendation insights</p>
         <h2 className="mt-2 text-xl font-bold text-slate-950">Why these offers?</h2>
         <ul className="mt-5 space-y-3">
           {insights.map((insight) => (

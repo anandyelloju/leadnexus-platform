@@ -4,13 +4,9 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { ONBOARDING_EVENTS, trackOnboardingEvent } from '@/lib/analytics';
+import { getSubmissionReference, type SubmissionReference } from '@/lib/submission-reference';
 
 type IconName = 'check' | 'copy' | 'clock' | 'file' | 'shield' | 'lock' | 'arrow' | 'dashboard';
-
-type ReferenceDetails = {
-    applicationId: string;
-    submittedAt: string;
-};
 
 const iconPaths: Record<IconName, ReactNode> = {
     check: <path d="m5 12 4 4L19 6" />,
@@ -105,30 +101,6 @@ function Icon({ name, className = 'h-5 w-5' }: { name: IconName; className?: str
             {iconPaths[name]}
         </svg>
     );
-}
-
-function getReferenceDetails(): ReferenceDetails {
-    const now = new Date();
-    const stored = localStorage.getItem('leadnexusSubmissionReference');
-
-    if (stored) {
-        try {
-            return JSON.parse(stored) as ReferenceDetails;
-        } catch {
-            localStorage.removeItem('leadnexusSubmissionReference');
-        }
-    }
-
-    const datePart = now.getFullYear().toString();
-    const sequence = Math.floor(10000 + Math.random() * 90000).toString();
-    const details = {
-        applicationId: `LN-${datePart}-${sequence}`,
-        submittedAt: now.toISOString(),
-    };
-
-    localStorage.setItem('leadnexusSubmissionReference', JSON.stringify(details));
-
-    return details;
 }
 
 function formatSubmissionTime(value: string) {
@@ -236,7 +208,7 @@ function NextStepsTimeline() {
     );
 }
 
-function ApplicationReference({ reference }: { reference: ReferenceDetails | null }) {
+function ApplicationReference({ reference }: { reference: SubmissionReference | null }) {
     const [copied, setCopied] = useState(false);
 
     async function handleCopy() {
@@ -357,7 +329,7 @@ function NextActions() {
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row lg:shrink-0">
                     <Link
-                        href="/dashboard?view=application"
+                        href="/welcome"
                         onClick={() => trackClick(ONBOARDING_EVENTS.APPLICATION_TRACKING_CTA_CLICKED)}
                         className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-900/20 transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200"
                     >
@@ -365,7 +337,7 @@ function NextActions() {
                         <Icon name="arrow" className="h-4 w-4" />
                     </Link>
                     <Link
-                        href="/dashboard"
+                        href="/welcome"
                         onClick={() => trackClick(ONBOARDING_EVENTS.DASHBOARD_CTA_CLICKED)}
                         className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-blue-700 shadow-sm ring-1 ring-blue-100 transition hover:bg-blue-700 hover:text-white focus:outline-none focus:ring-4 focus:ring-blue-200"
                     >
@@ -379,10 +351,10 @@ function NextActions() {
 }
 
 export default function ThankYouPage() {
-    const [reference, setReference] = useState<ReferenceDetails | null>(null);
+    const [reference, setReference] = useState<SubmissionReference | null>(null);
 
     useEffect(() => {
-        const details = getReferenceDetails();
+        const details = getSubmissionReference();
 
         queueMicrotask(() => {
             setReference(details);

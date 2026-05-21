@@ -41,7 +41,7 @@ export async function trackOnboardingEvent(eventName: OnboardingEventName, optio
     console.info('[LeadNexus analytics]', payload);
   }
 
-  if (!options.persistToServer) {
+  if (!options.persistToServer || !options.serverEventType) {
     return;
   }
 
@@ -53,7 +53,7 @@ export async function trackOnboardingEvent(eventName: OnboardingEventName, optio
   try {
     await eventsService.createEvent({
       leadId,
-      eventType: options.serverEventType ?? 'EMI_CALCULATOR_USED',
+      eventType: options.serverEventType,
       metadata: payload,
     });
   } catch (error) {

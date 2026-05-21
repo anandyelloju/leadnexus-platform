@@ -7,7 +7,7 @@ import { EligibilityConfidence } from '@/components/loan-offers/EligibilityConfi
 import { LoanOfferCard } from '@/components/loan-offers/LoanOfferCard';
 import { OfferComparison } from '@/components/loan-offers/OfferComparison';
 import { RecommendationInsightsPanel } from '@/components/loan-offers/RecommendationInsightsPanel';
-import { formatCurrency } from '@/lib/financial';
+import { formatCurrency, type EmiEstimate } from '@/lib/financial';
 import { getSavedEmiEstimate } from '@/lib/onboarding-estimate';
 import { generateLoanRecommendations, type RecommendationLead } from '@/lib/loan-recommendations';
 import { eventsService } from '@/services/events.service';
@@ -41,7 +41,7 @@ export default function LoanOffersPage() {
   const [isLoadingLead, setIsLoadingLead] = useState(true);
   const [comparedOfferIds, setComparedOfferIds] = useState<string[]>([]);
   const [savedOfferIds, setSavedOfferIds] = useState<string[]>([]);
-  const [emiEstimate, setEmiEstimate] = useState(getSavedEmiEstimate);
+  const [emiEstimate, setEmiEstimate] = useState<EmiEstimate | null>(null);
 
   useEffect(() => {
     if (!leadId) {

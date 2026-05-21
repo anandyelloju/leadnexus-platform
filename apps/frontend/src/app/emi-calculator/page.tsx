@@ -135,7 +135,6 @@ export default function EmiCalculatorPage() {
 
   useEffect(() => {
     void trackOnboardingEvent(ONBOARDING_EVENTS.EMI_CALCULATOR_OPENED, {
-      persistToServer: true,
       metadata: { page: '/emi-calculator' },
     });
   }, []);
@@ -170,11 +169,11 @@ export default function EmiCalculatorPage() {
     saveEmiEstimate(nextEstimate);
 
     void trackOnboardingEvent(ONBOARDING_EVENTS.CALCULATE_EMI_CLICKED, {
-      persistToServer: true,
       metadata: nextEstimate,
     });
     void trackOnboardingEvent(ONBOARDING_EVENTS.EMI_RESULT_VIEWED, {
       persistToServer: true,
+      serverEventType: 'EMI_CALCULATOR_USED',
       metadata: nextEstimate,
     });
   }
@@ -185,15 +184,12 @@ export default function EmiCalculatorPage() {
     }
 
     void trackOnboardingEvent(ONBOARDING_EVENTS.CALLBACK_CTA_CLICKED, {
-      persistToServer: true,
       metadata: estimate,
     });
   }
 
   function handleApplicationClick() {
     void trackOnboardingEvent(ONBOARDING_EVENTS.CONTINUE_APPLICATION_CLICKED, {
-      persistToServer: true,
-      serverEventType: 'FORM_STARTED',
       metadata: estimate ?? { loanAmount, tenure },
     });
   }

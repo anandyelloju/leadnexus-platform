@@ -175,7 +175,7 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
           <p className="font-medium text-slate-700">LeadNexus supports secure lending journeys from application to decision.</p>
           <Link
-            href="/callback-request"
+            href="/start"
             className="inline-flex items-center font-semibold text-blue-700 transition hover:text-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200"
           >
             Request a callback
