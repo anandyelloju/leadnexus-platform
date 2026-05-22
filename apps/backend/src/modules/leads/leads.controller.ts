@@ -8,12 +8,16 @@ import {
   Query,
 } from '@nestjs/common';
 import { CreateLeadDto } from './dto/create-lead.dto';
+import { LeadInsightsService } from './lead-insights.service';
 import { UpdateLeadDto } from './dto/update-lead.dto';
 import { LeadsService } from './leads.service';
 
 @Controller('leads')
 export class LeadsController {
-  constructor(private readonly leadsService: LeadsService) { }
+  constructor(
+    private readonly leadsService: LeadsService,
+    private readonly leadInsightsService: LeadInsightsService,
+  ) {}
 
   @Post()
   async createLead(@Body() createLeadDto: CreateLeadDto) {
@@ -34,12 +38,13 @@ export class LeadsController {
   }
 
   @Get('phone/search')
-  async findLeadByPhone(
-    @Query('phone') phone: string,
-  ) {
-    return this.leadsService.findLeadByPhone(
-      phone,
-    );
+  async findLeadByPhone(@Query('phone') phone: string) {
+    return this.leadsService.findLeadByPhone(phone);
+  }
+
+  @Get(':id/insights')
+  async getLeadInsights(@Param('id') id: string) {
+    return this.leadInsightsService.generateLeadInsights(id);
   }
 
   @Get(':id')

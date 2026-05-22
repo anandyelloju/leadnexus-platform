@@ -22,6 +22,19 @@ export interface DashboardLead {
   scores?: LeadScore;
 }
 
+export interface DashboardInsights {
+  highIntentLeads: number;
+  pendingCallbacks: number;
+  verificationQueue: number;
+  fraudRiskCount: number;
+  slaBreaches: number;
+  engagementTrend: number;
+  topRecommendation: string;
+  insights: string[];
+  provider?: string;
+  generatedBy?: 'ai' | 'rules';
+}
+
 export interface PendingDashboardAction {
   id: string;
   actionType: string;

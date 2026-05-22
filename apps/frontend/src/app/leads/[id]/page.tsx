@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from 'react';
 
-import LeadOperationsWorkspace, { Lead } from '@/components/leads/LeadOperationsWorkspace';
+import LeadOperationsWorkspace, { Lead, LeadInsights } from '@/components/leads/LeadOperationsWorkspace';
 import { leadsService } from '@/services/leads.service';
 
 interface Props {
@@ -14,13 +14,18 @@ export default function LeadDetailsPage({
 }: Props) {
   const { id } = use(params);
   const [lead, setLead] = useState<Lead | null>(null);
+  const [insights, setInsights] = useState<LeadInsights | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
     async function loadLead() {
       try {
-        const data = await leadsService.getLeadById(id);
+        const [data, insightData] = await Promise.all([
+          leadsService.getLeadById(id),
+          leadsService.getLeadInsights(id),
+        ]);
         setLead(data as Lead);
+        setInsights(insightData as LeadInsights);
       } catch (loadError) {
         console.error(loadError);
         setError('Failed to load lead intelligence workspace');
@@ -51,5 +56,5 @@ export default function LeadDetailsPage({
     );
   }
 
-  return <LeadOperationsWorkspace lead={lead} />;
+  return <LeadOperationsWorkspace lead={lead} insights={insights} />;
 }

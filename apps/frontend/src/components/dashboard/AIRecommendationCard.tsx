@@ -1,21 +1,20 @@
-import { DashboardLead } from '@/types/dashboard.types';
+import { DashboardInsights } from '@/types/dashboard.types';
 
 interface Props {
-  recommendation: string;
-  lead?: DashboardLead;
+  insights?: DashboardInsights | null;
 }
 
 export default function AIRecommendationCard({
-  recommendation,
-  lead,
+  insights,
 }: Props) {
-  const score = lead?.scores?.finalScore || 0;
-  const insights = [
-    'High callback intent detected',
-    'Repeated EMI interactions observed',
-    `Lead score increased to ${score || 'priority range'}`,
-    score >= 300 ? 'Fraud risk: Review required' : 'Fraud risk: Moderate',
-  ];
+  const insightItems = insights?.insights?.length
+    ? insights.insights
+    : [
+      'Portfolio intelligence is syncing',
+      'Callback queue status is being evaluated',
+      'Verification workload is being calculated',
+      'SLA health is being monitored',
+    ];
 
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
@@ -34,7 +33,7 @@ export default function AIRecommendationCard({
       </div>
 
       <div className="grid gap-2">
-        {insights.map((insight) => (
+        {insightItems.map((insight) => (
           <div key={insight} className="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
             <span className="h-2 w-2 rounded-full bg-blue-600" />
             <p className="text-xs font-semibold text-slate-700">{insight}</p>
@@ -47,7 +46,7 @@ export default function AIRecommendationCard({
           Recommended Action
         </p>
         <p className="mt-1 text-sm font-bold text-slate-950">
-          {recommendation || 'Assign advisor immediately'}
+          {insights?.topRecommendation || 'Maintain active nurturing and monitor new intent signals.'}
         </p>
       </div>
     </section>

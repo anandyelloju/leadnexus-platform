@@ -24,10 +24,8 @@ export const dashboardService = {
     return response.data.data;
   },
 
-  async getLeadRecommendation(leadId: string) {
-    const response = await api.get(
-      `/ai/lead-summary/${leadId}`,
-    );
+  async getInsights() {
+    const response = await api.get('/dashboard/insights');
 
     return response.data.data;
   },

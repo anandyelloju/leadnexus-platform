@@ -9,7 +9,7 @@ import { UpdateLeadDto } from './dto/update-lead.dto';
 
 @Injectable()
 export class LeadsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async createLead(createLeadDto: CreateLeadDto) {
     const existingLead = await this.prisma.lead.findUnique({
@@ -26,9 +26,7 @@ export class LeadsService {
         return existingLead;
       }
 
-      throw new BadRequestException(
-        'Lead with this phone already exists',
-      );
+      throw new BadRequestException('Lead with this phone already exists');
     }
 
     try {
@@ -47,9 +45,7 @@ export class LeadsService {
             ? target
             : 'field';
 
-        throw new BadRequestException(
-          `Lead with this ${field} already exists`,
-        );
+        throw new BadRequestException(`Lead with this ${field} already exists`);
       }
 
       if (error.code === 'P2014' || error.code === 'P2003') {
@@ -108,7 +104,29 @@ export class LeadsService {
       throw new NotFoundException('Lead not found');
     }
 
-    return lead;
+    if (!lead.assignedTo) {
+      return {
+        ...lead,
+        advisor: null,
+      };
+    }
+
+    const advisor = await this.prisma.salesAgent.findUnique({
+      where: {
+        id: lead.assignedTo,
+      },
+      select: {
+        id: true,
+        name: true,
+        language: true,
+        region: true,
+      },
+    });
+
+    return {
+      ...lead,
+      advisor,
+    };
   }
 
   async findLeadByPhone(phone: string) {

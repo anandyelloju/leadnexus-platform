@@ -29,6 +29,13 @@ interface LeadAction {
   createdAt?: string;
 }
 
+interface Advisor {
+  id: string;
+  name: string;
+  language?: string;
+  region?: string;
+}
+
 export interface Lead {
   id: string;
   name: string;
@@ -44,10 +51,30 @@ export interface Lead {
   scores?: LeadScore | null;
   events?: LeadEvent[];
   actions?: LeadAction[];
+  advisor?: Advisor | null;
+}
+
+export interface LeadInsights {
+  conversionProbability: number;
+  riskLevel: string;
+  callbackIntent: string;
+  recommendation: string;
+  insights: string[];
+  warnings: string[];
+  confidence: number;
+  provider?: string;
+  generatedBy?: 'ai' | 'rules';
+  sla?: {
+    callback: string;
+    callbackTone: ChipTone;
+    verification: string;
+    verificationTone: ChipTone;
+  };
 }
 
 interface Props {
   lead: Lead;
+  insights?: LeadInsights | null;
 }
 
 interface EventDefinition {
@@ -212,6 +239,10 @@ function getHeat(score: number) {
   return { label: 'NEW', tone: 'slate' as ChipTone, probability: 24, risk: 'Unknown' };
 }
 
+function getAdvisorName(lead: Lead) {
+  return lead.advisor?.name ?? (lead.assignedTo ? 'Assigned advisor' : 'Unassigned');
+}
+
 function groupEvents(events: LeadEvent[] = []) {
   const groups = new Map<string, SessionGroup>();
 
@@ -287,12 +318,16 @@ function LeadHeader({
   lead,
   heat,
   lastActivity,
+  insights,
 }: {
   lead: Lead;
   heat: ReturnType<typeof getHeat>;
   lastActivity?: string;
+  insights?: LeadInsights | null;
 }) {
   const score = getScore(lead);
+  const conversionProbability = insights?.conversionProbability ?? heat.probability;
+  const riskLevel = insights?.riskLevel ?? heat.risk;
 
   return (
     <section className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
@@ -309,8 +344,8 @@ function LeadHeader({
 
         <div className="grid w-full gap-2 sm:grid-cols-2 lg:w-auto lg:grid-cols-4">
           <MetricCard label="Lead Score" value={`${score} / 100`} detail="Behavior weighted" tone={heat.tone} />
-          <MetricCard label="Conversion" value={`${heat.probability}%`} detail="AI confidence" tone="green" />
-          <MetricCard label="Risk Level" value={heat.risk} detail="Operational watch" tone={heat.risk === 'Low' ? 'green' : 'amber'} />
+          <MetricCard label="Conversion" value={`${conversionProbability}%`} detail="AI confidence" tone="green" />
+          <MetricCard label="Risk Level" value={riskLevel} detail="Operational watch" tone={riskLevel === 'Low' ? 'green' : riskLevel === 'High' ? 'red' : 'amber'} />
           <MetricCard label="Last Activity" value={formatRelative(lastActivity)} detail={formatDateTime(lastActivity)} tone="blue" />
         </div>
       </div>
@@ -340,7 +375,7 @@ function LeadProfileRail({
             ['Employment', titleize(lead.employmentType)],
             ['Salary', formatCurrency(lead.salary)],
             ['Loan Amount', formatCurrency(lead.loanAmount)],
-            ['Advisor', lead.assignedTo ?? 'Unassigned'],
+            ['Advisor', getAdvisorName(lead)],
           ].map(([label, value]) => (
             <div key={label} className="flex items-center justify-between gap-3 border-b border-slate-100 pb-2 last:border-b-0 last:pb-0">
               <dt className="text-xs font-semibold uppercase text-slate-500">{label}</dt>
@@ -525,36 +560,41 @@ function IntelligenceRail({
   lead,
   heat,
   groups,
+  insights,
 }: {
   lead: Lead;
   heat: ReturnType<typeof getHeat>;
   groups: SessionGroup[];
+  insights?: LeadInsights | null;
 }) {
   const hasCallback = groups.some((group) => group.category === 'callback');
-  const hasEmi = groups.some((group) => group.title.includes('EMI'));
   const hasVerification = groups.some((group) => group.category === 'verification');
-  const hasRisk = groups.some((group) => group.category === 'risk');
-  const score = getScore(lead);
-
-  const insights = [
-    hasCallback ? 'High callback intent detected' : 'Callback intent not yet explicit',
-    hasEmi ? 'Repeated EMI interactions observed' : 'EMI intent signal is still developing',
-    score >= 70 ? 'Strong loan eligibility likelihood' : 'Eligibility needs advisor validation',
-    hasRisk ? 'Moderate fraud or abandonment risk detected' : 'No elevated behavioral risk signal',
-  ];
+  const insightItems = insights?.insights?.length
+    ? insights.insights
+    : [
+      hasCallback ? 'High callback intent detected' : 'Callback intent not yet explicit',
+      'EMI intent signal is still developing',
+      'Eligibility needs advisor validation',
+      'No elevated behavioral risk signal',
+    ];
+  const confidence = insights?.confidence ?? heat.probability;
+  const callbackSla = insights?.sla?.callback ?? (hasCallback ? 'Overdue by 2h' : 'No request');
+  const callbackTone = insights?.sla?.callbackTone ?? (hasCallback ? 'red' : 'slate');
+  const verificationStatus = insights?.sla?.verification ?? (hasVerification ? 'Complete' : 'Pending');
+  const verificationTone = insights?.sla?.verificationTone ?? (hasVerification ? 'green' : 'amber');
 
   return (
     <aside className="space-y-3">
       <section className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-bold text-slate-950">AI Lead Insights</h2>
-          <StatusChip label={`${heat.probability}% confident`} tone="green" />
+          <StatusChip label={`${confidence}% confident`} tone="green" />
         </div>
         <div className="mt-3 grid gap-2">
-          {insights.map((insight, index) => (
+          {insightItems.map((insight, index) => (
             <div key={insight} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
               <div className="flex items-start gap-2">
-                <span className={`mt-1 h-2 w-2 rounded-full ${index === 0 ? 'bg-amber-500' : index === 3 && hasRisk ? 'bg-rose-500' : 'bg-blue-600'}`} />
+                <span className={`mt-1 h-2 w-2 rounded-full ${index === 0 ? 'bg-amber-500' : insights?.warnings?.length && index === 3 ? 'bg-rose-500' : 'bg-blue-600'}`} />
                 <p className="text-xs font-semibold leading-5 text-slate-700">{insight}</p>
               </div>
             </div>
@@ -563,7 +603,7 @@ function IntelligenceRail({
         <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
           <p className="text-[11px] font-bold uppercase text-blue-700">Recommended Action</p>
           <p className="mt-1 text-sm font-black text-slate-950">
-            {hasCallback || score >= 70 ? 'Assign advisor immediately' : 'Nurture with verification follow-up'}
+            {insights?.recommendation ?? 'Nurture with verification follow-up'}
           </p>
         </div>
       </section>
@@ -571,9 +611,9 @@ function IntelligenceRail({
       <section className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
         <h2 className="text-sm font-bold text-slate-950">SLA & Follow-Up</h2>
         <div className="mt-3 grid gap-2">
-          <SlaCard label="Callback SLA" value={hasCallback ? 'Overdue by 2h' : 'No request'} tone={hasCallback ? 'red' : 'slate'} />
+          <SlaCard label="Callback SLA" value={callbackSla} tone={callbackTone} />
           <SlaCard label="Last Contact" value={formatRelative(lead.updatedAt ?? lead.createdAt)} tone="amber" />
-          <SlaCard label="Verification" value={hasVerification ? 'Complete' : 'Pending'} tone={hasVerification ? 'green' : 'amber'} />
+          <SlaCard label="Verification" value={verificationStatus} tone={verificationTone} />
         </div>
       </section>
 
@@ -660,6 +700,7 @@ function InternalNotes() {
 
 export default function LeadOperationsWorkspace({
   lead,
+  insights,
 }: Props) {
   const [activeFilter, setActiveFilter] = useState<EventCategory>('all');
   const groups = useMemo(() => groupEvents(lead.events ?? []), [lead.events]);
@@ -669,12 +710,12 @@ export default function LeadOperationsWorkspace({
   return (
     <main className="min-h-[calc(100vh-57px)] bg-slate-100 px-3 py-3 text-slate-900 sm:px-4">
       <div className="mx-auto grid max-w-[1600px] gap-3 xl:max-h-[calc(100vh-81px)] xl:grid-rows-[auto_minmax(0,1fr)]">
-        <LeadHeader lead={lead} heat={heat} lastActivity={lastActivity} />
+        <LeadHeader lead={lead} heat={heat} lastActivity={lastActivity} insights={insights} />
 
         <section className="grid min-h-0 gap-3 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[292px_minmax(0,1fr)_340px]">
           <LeadProfileRail lead={lead} heat={heat} />
           <Timeline groups={groups} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
-          <IntelligenceRail lead={lead} heat={heat} groups={groups} />
+          <IntelligenceRail lead={lead} heat={heat} groups={groups} insights={insights} />
         </section>
       </div>
     </main>

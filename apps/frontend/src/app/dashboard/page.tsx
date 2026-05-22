@@ -12,6 +12,7 @@ import PendingActionsTable from '@/components/dashboard/PendingActionsTable';
 import { dashboardService } from '@/services/dashboard.service';
 import {
     DashboardLead,
+    DashboardInsights,
     DashboardSummary,
     FunnelMetric,
     PendingDashboardAction,
@@ -24,7 +25,7 @@ export default function DashboardPage() {
 
     const [hotLeads, setHotLeads] = useState<DashboardLead[]>([]);
 
-    const [recommendation, setRecommendation] = useState('');
+    const [dashboardInsights, setDashboardInsights] = useState<DashboardInsights | null>(null);
 
     const [pendingActions, setPendingActions] = useState<PendingDashboardAction[]>([]);
 
@@ -49,25 +50,20 @@ export default function DashboardPage() {
                 funnelData,
                 hotLeadsData,
                 pendingActionsData,
+                dashboardInsightsData,
             ] = await Promise.all([
                 dashboardService.getSummary(),
                 dashboardService.getFunnelMetrics(),
                 dashboardService.getHotLeads(),
                 dashboardService.getPendingActions(),
+                dashboardService.getInsights(),
             ]);
 
             setSummary(summaryData as DashboardSummary);
             setFunnelMetrics(Array.isArray(funnelData) ? funnelData as FunnelMetric[] : []);
             setHotLeads(Array.isArray(hotLeadsData) ? hotLeadsData as DashboardLead[] : []);
             setPendingActions(Array.isArray(pendingActionsData) ? pendingActionsData as PendingDashboardAction[] : []);
-
-            if (Array.isArray(hotLeadsData) && hotLeadsData.length > 0) {
-                const aiResponse = await dashboardService.getLeadRecommendation(
-                    hotLeadsData[0].id,
-                );
-
-                setRecommendation(aiResponse.recommendation || 'No recommendation available');
-            }
+            setDashboardInsights(dashboardInsightsData as DashboardInsights);
 
         } catch (error) {
             console.error(error);
@@ -144,7 +140,7 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="grid min-h-0 gap-3 lg:grid-rows-[auto_minmax(0,1fr)]">
-                        <AIRecommendationCard recommendation={recommendation} lead={hotLeads[0]} />
+                        <AIRecommendationCard insights={dashboardInsights} />
                         <PendingActionsTable
                             actions={pendingActions}
                             onRefresh={loadDashboard}

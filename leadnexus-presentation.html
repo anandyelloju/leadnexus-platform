@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LeadNexus Presentation</title>
+  <style>
+    :root {
+      --bg: #eef3f8;
+      --surface: #ffffff;
+      --surface-soft: #f7fafc;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #dbe4ee;
+      --blue: #1d4ed8;
+      --blue-dark: #1e3a8a;
+      --blue-soft: #e8f0ff;
+      --green: #047857;
+      --green-soft: #e7f7ef;
+      --amber: #b45309;
+      --amber-soft: #fff4dd;
+      --red: #be123c;
+      --red-soft: #fff1f2;
+      --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(29, 78, 216, 0.06), transparent 34%),
+        var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .deck {
+      height: 100dvh;
+      width: 100vw;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      min-height: 100dvh;
+      padding: 42px 54px 86px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    .frame {
+      width: min(1180px, 100%);
+      height: min(720px, calc(100dvh - 132px));
+      min-height: 560px;
+      border: 1px solid rgba(219, 228, 238, 0.95);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 28px 34px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .slide-kicker {
+      margin: 0 0 8px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 14px;
+      font-size: clamp(40px, 6vw, 72px);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-bottom: 0;
+      max-width: 820px;
+      font-size: clamp(26px, 3.1vw, 42px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin-bottom: 7px;
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      max-width: 740px;
+      color: var(--muted);
+      font-size: clamp(17px, 2vw, 24px);
+      line-height: 1.45;
+    }
+
+    .lead {
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.58;
+    }
+
+    .slide-number {
+      min-width: 86px;
+      align-self: flex-start;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      padding: 7px 12px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .content {
+      flex: 1;
+      padding: 26px 34px 34px;
+      min-height: 0;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
+      gap: 30px;
+      height: 100%;
+      align-items: center;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: #334155;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+    }
+
+    .mini-dashboard {
+      display: grid;
+      gap: 12px;
+      background: linear-gradient(180deg, #f8fbff, #ffffff);
+    }
+
+    .score-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 14px;
+    }
+
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .bar {
+      height: 8px;
+      margin-top: 11px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e2e8f0;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+    }
+
+    .workflow-strip,
+    .flow-line {
+      display: grid;
+      gap: 10px;
+    }
+
+    .workflow-strip {
+      grid-template-columns: repeat(4, 1fr);
+      margin-top: 12px;
+    }
+
+    .step {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      padding: 12px;
+      min-height: 86px;
+      position: relative;
+    }
+
+    .step small,
+    .card small,
+    .metric small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .step strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 18px;
+      min-height: 134px;
+    }
+
+    .card p,
+    .metric p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .card.accent {
+      border-color: #bed2ff;
+      background: var(--blue-soft);
+    }
+
+    .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 12px;
+      border-radius: var(--radius);
+      background: var(--blue);
+      color: white;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .system-flow {
+      display: grid;
+      grid-template-columns: 1fr 42px 1fr 42px 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .arrow {
+      height: 2px;
+      background: var(--blue);
+      position: relative;
+    }
+
+    .arrow::after {
+      content: "";
+      position: absolute;
+      right: -1px;
+      top: -4px;
+      width: 0;
+      height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 7px solid var(--blue);
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .feature {
+      min-height: 144px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 15px;
+    }
+
+    .feature h3 {
+      font-size: 15px;
+    }
+
+    .feature p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.42;
+    }
+
+    .architecture {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .arch-box {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 17px;
+      min-height: 165px;
+    }
+
+    .arch-box h3 {
+      color: var(--blue-dark);
+    }
+
+    .arch-list {
+      display: grid;
+      gap: 8px;
+      margin: 12px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .arch-list li {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--surface-soft);
+      padding: 8px 10px;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .data-band {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+      border: 1px solid #bed2ff;
+      border-radius: var(--radius);
+      background: var(--blue-soft);
+      padding: 14px;
+    }
+
+    .metric {
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.72);
+      padding: 12px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 18px;
+    }
+
+    .journey {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      height: 100%;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 9px;
+      margin-top: 16px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 11px;
+      align-items: start;
+    }
+
+    .dot {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: var(--blue);
+      color: white;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .timeline-card {
+      min-height: 54px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      padding: 10px 12px;
+    }
+
+    .timeline-card strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .timeline-card span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .roadmap {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .roadmap .card {
+      min-height: 156px;
+    }
+
+    .closing {
+      display: grid;
+      grid-template-columns: 1fr 0.9fr;
+      gap: 20px;
+      align-items: stretch;
+      margin-top: 18px;
+    }
+
+    .thank-you {
+      display: flex;
+      min-height: 170px;
+      flex-direction: column;
+      justify-content: center;
+      border-radius: var(--radius);
+      background: var(--ink);
+      color: white;
+      padding: 22px;
+    }
+
+    .thank-you h3 {
+      font-size: 30px;
+    }
+
+    .thank-you p {
+      margin: 0;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .nav {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(-50%);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 8px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    .nav button {
+      min-width: 86px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--blue);
+      color: white;
+      cursor: pointer;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .nav button:disabled {
+      cursor: not-allowed;
+      background: #cbd5e1;
+      color: #64748b;
+    }
+
+    .dots {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 4px;
+    }
+
+    .dots span {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #cbd5e1;
+    }
+
+    .dots span.active {
+      width: 24px;
+      background: var(--blue);
+    }
+
+    @media (max-width: 980px) {
+      body {
+        overflow: auto;
+      }
+
+      .deck {
+        min-height: 100dvh;
+      }
+
+      .slide {
+        min-height: auto;
+        padding: 22px 16px 84px;
+      }
+
+      .frame {
+        height: auto;
+        min-height: calc(100dvh - 120px);
+      }
+
+      .hero-grid,
+      .journey,
+      .closing {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-3,
+      .feature-grid,
+      .architecture,
+      .roadmap {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .system-flow {
+        grid-template-columns: 1fr;
+      }
+
+      .arrow {
+        width: 2px;
+        height: 24px;
+        margin: 0 auto;
+      }
+
+      .arrow::after {
+        right: -4px;
+        top: auto;
+        bottom: -1px;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 7px solid var(--blue);
+        border-bottom: 0;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .slide-header,
+      .content {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .slide-header {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .grid-2,
+      .grid-3,
+      .feature-grid,
+      .architecture,
+      .roadmap,
+      .data-band,
+      .workflow-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .nav {
+        width: calc(100% - 24px);
+        justify-content: space-between;
+      }
+
+      .nav button {
+        min-width: 72px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-label="LeadNexus presentation">
+    <section class="slide active" aria-label="Title">
+      <div class="frame">
+        <div class="content">
+          <div class="hero-grid">
+            <div>
+              <p class="slide-kicker">Fintech operations platform</p>
+              <h1>LeadNexus</h1>
+              <p class="subtitle">AI-Powered Lending Operations &amp; Lead Intelligence Platform</p>
+              <p class="lead">LeadNexus connects customer onboarding, behavioral event tracking, lead scoring, advisor workflows, and AI-assisted operational decisions into one clean lending command center.</p>
+              <div class="pill-row">
+                <span class="pill">Personal loans</span>
+                <span class="pill">Lead intelligence</span>
+                <span class="pill">Advisor operations</span>
+                <span class="pill">AI recommendations</span>
+              </div>
+            </div>
+            <div class="panel mini-dashboard" aria-label="Architecture preview">
+              <div class="score-card">
+                <div class="score-row"><span>Lead score</span><strong>84 / 100</strong></div>
+                <div class="bar"><span style="width:84%"></span></div>
+              </div>
+              <div class="workflow-strip">
+                <div class="step"><small>01</small><strong>EMI planning</strong></div>
+                <div class="step"><small>02</small><strong>Callback intent</strong></div>
+                <div class="step"><small>03</small><strong>Documents</strong></div>
+                <div class="step"><small>04</small><strong>Advisor action</strong></div>
+              </div>
+              <div class="score-card">
+                <div class="score-row"><span>Next best action</span><strong>Assign advisor</strong></div>
+                <div class="bar"><span style="width:68%"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-label="Problem statement">
+      <div class="frame">
+        <header class="slide-header">
+          <div>
+            <p class="slide-kicker">Problem statement</p>
+            <h2>Lending teams lose time when customer intent, follow-up work, and eligibility signals are split across tools.</h2>
+          </div>
+          <div class="slide-number">2 / 7</div>
+        </header>
+        <div class="content">
+          <div class="grid-3">
+            <article class="card">
+              <span class="icon">01</span>
+              <h3>Manual qualification</h3>
+              <p>Advisors review income, loan amount, and customer readiness without a consistent scoring model.</p>
+            </article>
+            <article class="card">
+              <span class="icon">02</span>
+              <h3>Delayed callbacks</h3>
+              <p>High-intent requests can sit in queues without clear SLA visibility or priority routing.</p>
+            </article>
+            <article class="card">
+              <span class="icon">03</span>
+              <h3>Fragmented onboarding</h3>
+              <p>EMI planning, application details, documents, and loan offers often feel disconnected.</p>
+            </article>
+            <article class="card">
+              <span class="icon">04</span>
+              <h3>Limited behavioral context</h3>
+              <p>Repeated EMI usage, form starts, document uploads, and abandonment signals are hard to interpret quickly.</p>
+            </article>
+            <article class="card">
+              <span class="icon">05</span>
+              <h3>Unclear operations focus</h3>
+              <p>Managers need a simple view of hot leads, verification queues, risk signals, and pending actions.</p>
+            </article>
+            <article class="card accent">
+              <span class="icon">06</span>
+              <h3>Outcome</h3>
+              <p>Conversion opportunities leak when teams cannot see who needs attention, why, and what to do next.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-label="Solution">
+      <div class="frame">
+        <header class="slide-header">
+          <div>
+            <p class="slide-kicker">Our solution</p>
+            <h2>LeadNexus turns customer behavior into actionable lending operations intelligence.</h2>
+          </div>
+          <div class="slide-number">3 / 7</div>
+        </header>
+        <div class="content">
+          <div class="system-flow">
+            <article class="card">
+              <span class="icon">CU</span>
+              <h3>Customer journey</h3>
+              <p>Landing, EMI calculator, callback request, application, document upload, and loan offers.</p>
+            </article>
+            <div class="arrow" aria-hidden="true"></div>
+            <article class="card">
+              <span class="icon">IN</span>
+              <h3>Intelligence layer</h3>
+              <p>Event tracking, behavioral scoring, risk analysis, recommendation logic, and AI insights.</p>
+            </article>
+            <div class="arrow" aria-hidden="true"></div>
+            <article class="card">
+              <span class="icon">OP</span>
+              <h3>Operations workspace</h3>
+              <p>Lead profile, behavior timeline, SLA status, advisor tasks, internal notes, and next best action.</p>
+            </article>
+          </div>
+          <div class="data-band">
+            <div class="metric"><small>Centralized</small><strong>Lead onboarding</strong><p>One customer trail from intent to verification.</p></div>
+            <div class="metric"><small>Prioritized</small><strong>Lead scoring</strong><p>Intent, eligibility, engagement, and risk.</p></div>
+            <div class="metric"><small>Guided</small><strong>AI actions</strong><p>Operational recommendations with rule fallback.</p></div>
+            <div class="metric"><small>Visible</small><strong>Dashboards</strong><p>Hot leads, callbacks, SLA, and verification load.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-label="Core features">
+      <div class="frame">
+        <header class="slide-header">
+          <div>
+            <p class="slide-kicker">Core features</p>
+            <h2>Implemented product capabilities across customer onboarding and internal operations.</h2>
+          </div>
+          <div class="slide-number">4 / 7</div>
+        </header>
+        <div class="content">
+          <div class="feature-grid">
+            <article class="feature">
+              <span class="icon">EMI</span>
+              <h3>EMI Calculator</h3>
+              <p>Interactive loan amount and tenure planning with event tracking for repayment intent.</p>
+            </article>
+            <article class="feature">
+              <span class="icon">CB</span>
+              <h3>Callback Requests</h3>
+              <p>Advisor-ready consultation flow with estimate context and server-side event capture.</p>
+            </article>
+            <article class="feature">
+              <span class="icon">LR</span>
+              <h3>Loan Recommendations</h3>
+              <p>Personalized offer ranking based on income, documents, EMI activity, and lead score.</p>
+            </article>
+            <article class="feature">
+              <span class="icon">SC</span>
+              <h3>Dynamic Scoring</h3>
+              <p>Intent, eligibility, engagement, risk, and final score support stage movement.</p>
+            </article>
+            <article class="feature">
+              <span class="icon">AI</span>
+              <h3>AI Insights</h3>
+              <p>Groq Llama-powered summaries and recommendations with deterministic fallback.</p>
+            </article>
+            <article class="feature">
+              <span class="icon">DB</span>
+              <h3>Operations Dashboard</h3>
+              <p>Portfolio summary for hot leads, pending callbacks, verification, risk, and SLA pressure.</p>
+            </article>
+            <article class="feature">
+              <span class="icon">LW</span>
+              <h3>Lead Workspace</h3>
+              <p>Behavior journey, profile rail, score breakdown, quick actions, SLA, and notes.</p>
+            </article>
+            <article class="feature">
+              <span class="icon">DOC</span>
+              <h3>Document Workflow</h3>
+              <p>Upload states, verification readiness, and document events for application progress.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-label="System architecture">
+      <div class="frame">
+        <header class="slide-header">
+          <div>
+            <p class="slide-kicker">System architecture</p>
+            <h2>A practical full-stack architecture for event-driven lead intelligence.</h2>
+          </div>
+          <div class="slide-number">5 / 7</div>
+        </header>
+        <div class="content">
+          <div class="architecture">
+            <article class="arch-box">
+              <h3>Frontend</h3>
+              <p class="lead">Next.js and TypeScript customer and operations UI.</p>
+              <ul class="arch-list">
+                <li>EMI calculator</li>
+                <li>Callback flow</li>
+                <li>Application and documents</li>
+                <li>Dashboard and lead workspace</li>
+              </ul>
+            </article>
+            <article class="arch-box">
+              <h3>Backend</h3>
+              <p class="lead">NestJS services coordinate leads, events, scoring, actions, and AI.</p>
+              <ul class="arch-list">
+                <li>Leads API</li>
+                <li>Events API</li>
+                <li>Scoring service</li>
+                <li>Dashboard intelligence</li>
+              </ul>
+            </article>
+            <article class="arch-box">
+              <h3>Data &amp; AI</h3>
+              <p class="lead">PostgreSQL via Prisma stores lead state and behavior history.</p>
+              <ul class="arch-list">
+                <li>Lead, event, score, action models</li>
+                <li>Behavioral scoring service</li>
+                <li>Risk analysis service</li>
+                <li>Groq Llama AI layer</li>
+              </ul>
+            </article>
+          </div>
+          <div class="data-band">
+            <div class="metric"><small>Event input</small><strong>Customer actions</strong><p>Calculator, form, callback, documents.</p></div>
+            <div class="metric"><small>Rules</small><strong>Scoring engine</strong><p>Deterministic conversion and risk signals.</p></div>
+            <div class="metric"><small>AI</small><strong>Insight generation</strong><p>Concise summaries for operators.</p></div>
+            <div class="metric"><small>Output</small><strong>Advisor workflow</strong><p>Tasks, SLA, and next best action.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-label="User and operations flow">
+      <div class="frame">
+        <header class="slide-header">
+          <div>
+            <p class="slide-kicker">User &amp; operations flow</p>
+            <h2>Two connected journeys: customer onboarding and internal conversion operations.</h2>
+          </div>
+          <div class="slide-number">6 / 7</div>
+        </header>
+        <div class="content">
+          <div class="journey">
+            <section class="panel">
+              <h3>Customer Journey</h3>
+              <p class="lead">A guided lending path that captures useful intent signals without making the customer feel processed.</p>
+              <div class="timeline">
+                <div class="timeline-item"><span class="dot">1</span><div class="timeline-card"><strong>Landing Page</strong><span>Customer enters the loan experience.</span></div></div>
+                <div class="timeline-item"><span class="dot">2</span><div class="timeline-card"><strong>EMI Calculator</strong><span>Repayment planning creates engagement signals.</span></div></div>
+                <div class="timeline-item"><span class="dot">3</span><div class="timeline-card"><strong>Callback Request</strong><span>Advisor consultation captures high-intent demand.</span></div></div>
+                <div class="timeline-item"><span class="dot">4</span><div class="timeline-card"><strong>Application &amp; Documents</strong><span>Income and verification data strengthens eligibility.</span></div></div>
+                <div class="timeline-item"><span class="dot">5</span><div class="timeline-card"><strong>Loan Offers</strong><span>Products are ranked by approval fit and repayment comfort.</span></div></div>
+              </div>
+            </section>
+            <section class="panel">
+              <h3>Operations Journey</h3>
+              <p class="lead">A focused workspace helps advisors understand the lead, act quickly, and preserve context.</p>
+              <div class="timeline">
+                <div class="timeline-item"><span class="dot">1</span><div class="timeline-card"><strong>Lead Dashboard</strong><span>Hot leads, callbacks, SLA, risk, and verification queues.</span></div></div>
+                <div class="timeline-item"><span class="dot">2</span><div class="timeline-card"><strong>AI Insights</strong><span>Portfolio and lead-level recommendations.</span></div></div>
+                <div class="timeline-item"><span class="dot">3</span><div class="timeline-card"><strong>Lead Intelligence</strong><span>Behavior timeline, score breakdown, and profile context.</span></div></div>
+                <div class="timeline-item"><span class="dot">4</span><div class="timeline-card"><strong>Advisor Actions</strong><span>Assign, schedule callback, verify documents, update stage.</span></div></div>
+                <div class="timeline-item"><span class="dot">5</span><div class="timeline-card"><strong>Conversion</strong><span>Move qualified leads through verification and offer discussion.</span></div></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-label="Future implementations and conclusion">
+      <div class="frame">
+        <header class="slide-header">
+          <div>
+            <p class="slide-kicker">Roadmap &amp; conclusion</p>
+            <h2>Future implementation path: deeper AI, stronger verification, and enterprise-scale integrations.</h2>
+          </div>
+          <div class="slide-number">7 / 7</div>
+        </header>
+        <div class="content">
+          <div class="roadmap">
+            <article class="card">
+              <span class="icon">AI</span>
+              <h3>Advisor assistant AI</h3>
+              <p>Suggested talk tracks, objection handling, and policy-aware follow-up guidance.</p>
+            </article>
+            <article class="card">
+              <span class="icon">OCR</span>
+              <h3>Document OCR</h3>
+              <p>Extract income, identity, and bank statement signals from uploaded files.</p>
+            </article>
+            <article class="card">
+              <span class="icon">FR</span>
+              <h3>Fraud detection AI</h3>
+              <p>Risk flags from behavior patterns, documents, lead velocity, and data inconsistencies.</p>
+            </article>
+            <article class="card">
+              <span class="icon">UW</span>
+              <h3>Underwriting intelligence</h3>
+              <p>Explainable affordability checks and assisted manual review queues.</p>
+            </article>
+            <article class="card">
+              <span class="icon">SLA</span>
+              <h3>SLA prediction engine</h3>
+              <p>Forecast likely delays and route urgent leads before breach windows.</p>
+            </article>
+            <article class="card">
+              <span class="icon">API</span>
+              <h3>Lender integrations</h3>
+              <p>Connect offer checks, verification status, and lender decisions into the workspace.</p>
+            </article>
+          </div>
+          <div class="closing">
+            <div class="panel">
+              <h3>Product vision</h3>
+              <p class="lead">LeadNexus can become the operating layer between digital customer acquisition and lending team execution: measurable, explainable, and scalable for banking operations.</p>
+            </div>
+            <div class="thank-you">
+              <h3>Thank you</h3>
+              <p>LeadNexus: lending operations made clearer, faster, and more intelligence-driven.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav" aria-label="Presentation navigation">
+    <button type="button" id="prevSlide">Previous</button>
+    <div class="dots" id="dots" aria-label="Slide position"></div>
+    <button type="button" id="nextSlide">Next</button>
+  </nav>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const prevButton = document.getElementById('prevSlide');
+    const nextButton = document.getElementById('nextSlide');
+    const dots = document.getElementById('dots');
+    let currentSlide = 0;
+
+    slides.forEach((_, index) => {
+      const dot = document.createElement('span');
+      dot.setAttribute('aria-hidden', 'true');
+      dot.addEventListener('click', () => showSlide(index));
+      dots.appendChild(dot);
+    });
+
+    function showSlide(index) {
+      currentSlide = Math.max(0, Math.min(index, slides.length - 1));
+      slides.forEach((slide, slideIndex) => {
+        slide.classList.toggle('active', slideIndex === currentSlide);
+      });
+
+      Array.from(dots.children).forEach((dot, dotIndex) => {
+        dot.classList.toggle('active', dotIndex === currentSlide);
+      });
+
+      prevButton.disabled = currentSlide === 0;
+      nextButton.disabled = currentSlide === slides.length - 1;
+    }
+
+    prevButton.addEventListener('click', () => showSlide(currentSlide - 1));
+    nextButton.addEventListener('click', () => showSlide(currentSlide + 1));
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') {
+        event.preventDefault();
+        showSlide(currentSlide + 1);
+      }
+
+      if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
+        event.preventDefault();
+        showSlide(currentSlide - 1);
+      }
+
+      if (event.key === 'Home') {
+        showSlide(0);
+      }
+
+      if (event.key === 'End') {
+        showSlide(slides.length - 1);
+      }
+    });
+
+    showSlide(0);
+  </script>
+</body>
+</html>
