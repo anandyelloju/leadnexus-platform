@@ -17,8 +17,7 @@ export default function LeadDetailsPage({
   const [insights, setInsights] = useState<LeadInsights | null>(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    async function loadLead() {
+  async function loadLead() {
       try {
         const [data, insightData] = await Promise.all([
           leadsService.getLeadById(id),
@@ -30,8 +29,9 @@ export default function LeadDetailsPage({
         console.error(loadError);
         setError('Failed to load lead intelligence workspace');
       }
-    }
+  }
 
+  useEffect(() => {
     if (!id) return;
     void loadLead();
   }, [id]);
@@ -56,5 +56,5 @@ export default function LeadDetailsPage({
     );
   }
 
-  return <LeadOperationsWorkspace lead={lead} insights={insights} />;
+  return <LeadOperationsWorkspace lead={lead} insights={insights} onRefresh={loadLead} />;
 }

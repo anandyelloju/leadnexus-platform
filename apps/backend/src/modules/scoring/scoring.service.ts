@@ -102,8 +102,18 @@ export class ScoringService {
       totalScore < 0 ? 0 : totalScore;
 
     const currentStage = getLeadStage(finalScore);
+    const scoreManagedStages = [
+      'NEW',
+      'ENGAGED',
+      'INTERESTED',
+      'QUALIFIED',
+      'HOT',
+      'APPLICATION_STARTED',
+      'DROPPED',
+    ];
+    const shouldUpdateStage = scoreManagedStages.includes(lead.currentStage);
 
-    await this.prisma.$transaction([
+    const operations: any[] = [
       this.prisma.leadScore.upsert({
         where: {
           leadId,
@@ -124,15 +134,20 @@ export class ScoringService {
           finalScore,
         },
       }),
-      this.prisma.lead.update({
+    ];
+
+    if (shouldUpdateStage) {
+      operations.push(this.prisma.lead.update({
         where: {
           id: leadId,
         },
         data: {
           currentStage,
         },
-      }),
-    ]);
+      }));
+    }
+
+    await this.prisma.$transaction(operations);
 
     return {
       intentScore,

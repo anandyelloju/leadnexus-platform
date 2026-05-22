@@ -8,11 +8,11 @@ export const getLeadStage = (
   }
 
   if (finalScore >= 85) {
-    return LeadStage.QUALIFIED;
+    return LeadStage.HOT;
   }
 
   if (finalScore >= 55) {
-    return LeadStage.INTERESTED;
+    return LeadStage.ENGAGED;
   }
 
   if (finalScore >= 30) {

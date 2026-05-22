@@ -54,4 +54,44 @@ export const EVENT_SCORE_RULES: Record<
     bucket: 'risk',
     value: -10,
   },
+  [EventType.LEAD_STAGE_CHANGED]: {
+    bucket: 'none',
+    value: 0,
+  },
+  [EventType.MORE_INFORMATION_REQUESTED]: {
+    bucket: 'none',
+    value: 0,
+  },
+  [EventType.LEAD_UNDER_REVIEW]: {
+    bucket: 'engagement',
+    value: 5,
+  },
+  [EventType.VERIFICATION_ITEM_COMPLETED]: {
+    bucket: 'eligibility',
+    value: 5,
+  },
+  [EventType.VERIFICATION_ITEM_REOPENED]: {
+    bucket: 'risk',
+    value: -5,
+  },
+  [EventType.LEAD_VERIFIED]: {
+    bucket: 'eligibility',
+    value: 15,
+  },
+  [EventType.LEAD_APPROVED]: {
+    bucket: 'eligibility',
+    value: 20,
+  },
+  [EventType.LEAD_CONVERTED]: {
+    bucket: 'none',
+    value: 0,
+  },
+  [EventType.LEAD_REJECTED]: {
+    bucket: 'risk',
+    value: -25,
+  },
+  [EventType.UNDERWRITING_NOTE_ADDED]: {
+    bucket: 'none',
+    value: 0,
+  },
 };

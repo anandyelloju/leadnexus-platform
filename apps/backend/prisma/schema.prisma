@@ -13,8 +13,13 @@ enum LeadStage {
   QUALIFIED
   HOT
   APPLICATION_STARTED
+  DOCUMENTS_PENDING
+  UNDER_REVIEW
+  VERIFIED
+  APPROVED
   DROPPED
   CONVERTED
+  REJECTED
 }
 
 enum ActionStatus {
@@ -32,13 +37,20 @@ model Lead {
   loanAmount       Float?
   source           String
   currentStage     LeadStage    @default(NEW)
+  approvalStatus   String       @default("PENDING")
   assignedTo       String?
+  approvedAt       DateTime?
+  convertedAt      DateTime?
+  rejectedAt       DateTime?
+  underwritingDecision String?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
   events           LeadEvent[]
   scores           LeadScore?
   actions          LeadAction[]
+  verificationItems LeadVerificationItem[]
+  underwritingNotes UnderwritingNote[]
 
   @@map("leads")
 }
@@ -100,4 +112,34 @@ model SalesAgent {
   createdAt   DateTime  @default(now())
 
   @@map("sales_agents")
+}
+
+model LeadVerificationItem {
+  id           String    @id @default(uuid())
+  leadId       String
+  key          String
+  label        String
+  completed    Boolean   @default(false)
+  completedAt  DateTime?
+  completedBy  String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  lead         Lead      @relation(fields: [leadId], references: [id])
+
+  @@unique([leadId, key])
+  @@map("lead_verification_items")
+}
+
+model UnderwritingNote {
+  id           String    @id @default(uuid())
+  leadId       String
+  author       String
+  note         String
+  noteType     String    @default("UNDERWRITING")
+  createdAt    DateTime  @default(now())
+
+  lead         Lead      @relation(fields: [leadId], references: [id])
+
+  @@map("underwriting_notes")
 }

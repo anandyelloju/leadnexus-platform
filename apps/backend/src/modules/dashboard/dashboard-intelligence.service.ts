@@ -25,6 +25,7 @@ export class DashboardIntelligenceService {
         events: true,
         scores: true,
         actions: true,
+        verificationItems: true,
       },
       orderBy: {
         updatedAt: 'desc',
@@ -40,6 +41,14 @@ export class DashboardIntelligenceService {
     const verificationQueue = leads.filter((lead) =>
       this.needsVerification(lead),
     ).length;
+    const approvalQueue = leads.filter(
+      (lead) => lead.currentStage === 'VERIFIED',
+    ).length;
+    const convertedToday = leads.filter(
+      (lead) =>
+        lead.currentStage === 'CONVERTED' &&
+        this.isToday(lead.updatedAt),
+    ).length;
     const fraudRiskCount = leads.filter(
       (lead) => this.riskAnalysis.getRiskLevel(lead) !== 'Low',
     ).length;
@@ -53,6 +62,8 @@ export class DashboardIntelligenceService {
       fraudRiskCount,
       slaBreaches,
       engagementTrend,
+      approvalQueue,
+      convertedToday,
       topRecommendation: '',
       insights: [] as string[],
     };
@@ -71,11 +82,14 @@ export class DashboardIntelligenceService {
     fraudRiskCount: number;
     slaBreaches: number;
     engagementTrend: number;
+    approvalQueue?: number;
+    convertedToday?: number;
   }) {
     return [
       `${summary.highIntentLeads} leads show high callback intent`,
       `${summary.verificationQueue} applications pending verification`,
       `${summary.fraudRiskCount} fraud-risk profiles detected`,
+      `${summary.approvalQueue ?? 0} verified leads awaiting approval decision`,
       `EMI engagement ${summary.engagementTrend >= 0 ? 'increased' : 'decreased'} ${Math.abs(summary.engagementTrend)}% today`,
       `${summary.slaBreaches} leads nearing SLA breach`,
     ];
@@ -109,12 +123,24 @@ export class DashboardIntelligenceService {
       'APPLICATION_STARTED',
       'QUALIFIED',
       'HOT',
+      'DOCUMENTS_PENDING',
+      'UNDER_REVIEW',
     ].includes(lead.currentStage ?? '');
 
     return (
       verificationAction ||
       (applicationStage &&
-        !this.behavioralScoring.hasEvent(lead, 'DOCUMENT_UPLOADED'))
+        this.behavioralScoring.getVerificationCompletion(lead) < 1)
+    );
+  }
+
+  private isToday(date: Date) {
+    const now = new Date();
+
+    return (
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate()
     );
   }
 

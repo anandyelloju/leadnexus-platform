@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { leadsService } from '@/services/leads.service';
 
 type ChipTone = 'blue' | 'green' | 'amber' | 'red' | 'slate' | 'violet';
 type EventCategory = 'all' | 'verification' | 'engagement' | 'callback' | 'risk' | 'application';
@@ -29,6 +30,23 @@ interface LeadAction {
   createdAt?: string;
 }
 
+interface VerificationItem {
+  id: string;
+  key: string;
+  label: string;
+  completed: boolean;
+  completedAt?: string;
+  completedBy?: string;
+}
+
+interface UnderwritingNote {
+  id: string;
+  author: string;
+  note: string;
+  noteType?: string;
+  createdAt: string;
+}
+
 interface Advisor {
   id: string;
   name: string;
@@ -51,6 +69,8 @@ export interface Lead {
   scores?: LeadScore | null;
   events?: LeadEvent[];
   actions?: LeadAction[];
+  verificationItems?: VerificationItem[];
+  underwritingNotes?: UnderwritingNote[];
   advisor?: Advisor | null;
 }
 
@@ -75,6 +95,7 @@ export interface LeadInsights {
 interface Props {
   lead: Lead;
   insights?: LeadInsights | null;
+  onRefresh?: () => Promise<void> | void;
 }
 
 interface EventDefinition {
@@ -168,6 +189,69 @@ const eventDefinitions: Record<string, EventDefinition> = {
     icon: 'CALL',
     tone: 'amber',
     severity: 'high',
+  },
+  MORE_INFORMATION_REQUESTED: {
+    label: 'More Information Requested',
+    category: 'verification',
+    icon: 'INFO',
+    tone: 'amber',
+    severity: 'medium',
+  },
+  LEAD_UNDER_REVIEW: {
+    label: 'Lead Moved Under Review',
+    category: 'application',
+    icon: 'REV',
+    tone: 'blue',
+    severity: 'medium',
+  },
+  VERIFICATION_ITEM_COMPLETED: {
+    label: 'Verification Item Completed',
+    category: 'verification',
+    icon: 'CHK',
+    tone: 'green',
+    severity: 'medium',
+  },
+  VERIFICATION_ITEM_REOPENED: {
+    label: 'Verification Item Reopened',
+    category: 'verification',
+    icon: 'CHK',
+    tone: 'amber',
+    severity: 'medium',
+  },
+  LEAD_VERIFIED: {
+    label: 'Lead Verified',
+    category: 'verification',
+    icon: 'VER',
+    tone: 'green',
+    severity: 'medium',
+  },
+  LEAD_APPROVED: {
+    label: 'Lead Approved',
+    category: 'application',
+    icon: 'APR',
+    tone: 'green',
+    severity: 'high',
+  },
+  LEAD_CONVERTED: {
+    label: 'Lead Converted',
+    category: 'application',
+    icon: 'CNV',
+    tone: 'green',
+    severity: 'high',
+  },
+  LEAD_REJECTED: {
+    label: 'Lead Rejected',
+    category: 'risk',
+    icon: 'REJ',
+    tone: 'red',
+    severity: 'high',
+  },
+  UNDERWRITING_NOTE_ADDED: {
+    label: 'Underwriting Note Added',
+    category: 'application',
+    icon: 'NOTE',
+    tone: 'slate',
+    severity: 'low',
   },
 };
 
@@ -356,10 +440,71 @@ function LeadHeader({
 function LeadProfileRail({
   lead,
   heat,
+  onRefresh,
 }: {
   lead: Lead;
   heat: ReturnType<typeof getHeat>;
+  onRefresh?: () => Promise<void> | void;
 }) {
+  const [busyStage, setBusyStage] = useState<string | null>(null);
+  const verificationComplete = (lead.verificationItems ?? []).length > 0
+    && (lead.verificationItems ?? []).every((item) => item.completed);
+  const stage = lead.currentStage ?? 'NEW';
+  const canConvert = stage === 'APPROVED';
+
+  async function updateStage(nextStage: string, reason?: string) {
+    setBusyStage(nextStage);
+    try {
+      await leadsService.updateLeadStage(lead.id, {
+        stage: nextStage,
+        actor: 'Operations User',
+        reason,
+      });
+      await onRefresh?.();
+    } finally {
+      setBusyStage(null);
+    }
+  }
+
+  const stageActions = [
+    {
+      label: 'Request More Information',
+      stage: 'DOCUMENTS_PENDING',
+      enabled: !['CONVERTED', 'REJECTED'].includes(stage),
+      reason: 'Additional customer information required before review.',
+    },
+    {
+      label: 'Mark Under Review',
+      stage: 'UNDER_REVIEW',
+      enabled: !['CONVERTED', 'REJECTED', 'APPROVED'].includes(stage),
+      reason: 'Operations review started.',
+    },
+    {
+      label: 'Verify Documents',
+      stage: 'VERIFIED',
+      enabled: verificationComplete && !['VERIFIED', 'APPROVED', 'CONVERTED', 'REJECTED'].includes(stage),
+      reason: 'All verification checks completed.',
+    },
+    {
+      label: 'Approve Lead',
+      stage: 'APPROVED',
+      enabled: stage === 'VERIFIED',
+      reason: 'Human approval after verification and affordability review.',
+    },
+    {
+      label: 'Reject Lead',
+      stage: 'REJECTED',
+      enabled: !['CONVERTED', 'REJECTED'].includes(stage),
+      reason: 'Rejected after operations review.',
+    },
+    {
+      label: 'Convert Lead',
+      stage: 'CONVERTED',
+      enabled: canConvert,
+      reason: 'Customer confirmed offer after approval.',
+    },
+  ];
+
   return (
     <aside className="space-y-3">
       <section className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
@@ -425,18 +570,25 @@ function LeadProfileRail({
       <section className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
         <h2 className="text-sm font-bold text-slate-950">Quick Actions</h2>
         <div className="mt-3 grid gap-2">
-          {['Assign Advisor', 'Schedule Callback', 'Verify Documents', 'Change Lead Stage', 'Mark as Converted'].map((action, index) => (
+          {stageActions.map((action, index) => (
             <button
-              key={action}
+              key={action.stage}
               type="button"
+              disabled={!action.enabled || busyStage !== null}
+              onClick={() => updateStage(action.stage, action.reason)}
               className={index === 0
-                ? 'rounded-md bg-slate-950 px-3 py-2 text-left text-xs font-bold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300'
-                : 'rounded-md border border-slate-200 bg-white px-3 py-2 text-left text-xs font-bold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100'}
+                ? 'rounded-md bg-slate-950 px-3 py-2 text-left text-xs font-bold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300 disabled:cursor-not-allowed disabled:bg-slate-300'
+                : 'rounded-md border border-slate-200 bg-white px-3 py-2 text-left text-xs font-bold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:text-slate-300'}
             >
-              {action}
+              {busyStage === action.stage ? 'Updating...' : action.label}
             </button>
           ))}
         </div>
+        {!verificationComplete ? (
+          <p className="mt-2 text-[11px] font-semibold leading-4 text-slate-500">
+            Verification and approval actions unlock after all checklist items are complete.
+          </p>
+        ) : null}
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
@@ -561,11 +713,13 @@ function IntelligenceRail({
   heat,
   groups,
   insights,
+  onRefresh,
 }: {
   lead: Lead;
   heat: ReturnType<typeof getHeat>;
   groups: SessionGroup[];
   insights?: LeadInsights | null;
+  onRefresh?: () => Promise<void> | void;
 }) {
   const hasCallback = groups.some((group) => group.category === 'callback');
   const hasVerification = groups.some((group) => group.category === 'verification');
@@ -617,7 +771,9 @@ function IntelligenceRail({
         </div>
       </section>
 
-      <InternalNotes />
+      <VerificationChecklist lead={lead} onRefresh={onRefresh} />
+
+      <InternalNotes lead={lead} onRefresh={onRefresh} />
     </aside>
   );
 }
@@ -639,28 +795,106 @@ function SlaCard({
   );
 }
 
-function InternalNotes() {
-  const [notes, setNotes] = useState([
-    {
-      id: 'initial-underwriting-note',
-      author: 'Ops Analyst',
-      text: 'Review affordability and confirm preferred callback window before stage movement.',
-      createdAt: 'Today, 10:20',
-    },
-  ]);
+function VerificationChecklist({
+  lead,
+  onRefresh,
+}: {
+  lead: Lead;
+  onRefresh?: () => Promise<void> | void;
+}) {
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const items = lead.verificationItems ?? [];
+  const completed = items.filter((item) => item.completed).length;
+
+  async function toggleItem(item: VerificationItem) {
+    setBusyKey(item.key);
+    try {
+      await leadsService.updateVerificationItem(lead.id, item.key, {
+        completed: !item.completed,
+        completedBy: 'Operations User',
+      });
+      await onRefresh?.();
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  return (
+    <section className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-sm font-bold text-slate-950">Verification Checklist</h2>
+        <StatusChip label={`${completed}/${items.length || 5}`} tone={completed === items.length && items.length > 0 ? 'green' : 'amber'} />
+      </div>
+      <div className="mt-3 grid gap-2">
+        {items.map((item) => (
+          <label
+            key={item.key}
+            className="flex cursor-pointer items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2"
+          >
+            <input
+              type="checkbox"
+              checked={item.completed}
+              disabled={busyKey !== null}
+              onChange={() => toggleItem(item)}
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-200"
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-bold text-slate-800">{item.label}</span>
+              <span className="block text-[11px] font-medium text-slate-500">
+                {item.completedAt ? `Completed ${formatRelative(item.completedAt)}` : busyKey === item.key ? 'Updating...' : 'Pending review'}
+              </span>
+            </span>
+          </label>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function InternalNotes({
+  lead,
+  onRefresh,
+}: {
+  lead: Lead;
+  onRefresh?: () => Promise<void> | void;
+}) {
+  const notes = lead.underwritingNotes ?? [];
   const [draft, setDraft] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  async function addNote() {
+    const trimmed = draft.trim();
+    if (!trimmed) return;
+
+    setSaving(true);
+    try {
+      await leadsService.addUnderwritingNote(lead.id, {
+        note: trimmed,
+        author: 'Operations User',
+        noteType: 'UNDERWRITING',
+      });
+      setDraft('');
+      await onRefresh?.();
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
       <h2 className="text-sm font-bold text-slate-950">Internal Notes</h2>
       <div className="mt-3 grid gap-2">
-        {notes.map((note) => (
+        {notes.length === 0 ? (
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs font-semibold text-slate-500">
+            No underwriting notes recorded yet.
+          </div>
+        ) : notes.map((note) => (
           <article key={note.id} className="rounded-lg border border-slate-200 bg-slate-50 p-2">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-bold text-slate-800">{note.author}</p>
-              <p className="text-[11px] font-semibold text-slate-500">{note.createdAt}</p>
+              <p className="text-[11px] font-semibold text-slate-500">{formatRelative(note.createdAt)}</p>
             </div>
-            <p className="mt-1 text-xs font-medium leading-5 text-slate-600">{note.text}</p>
+            <p className="mt-1 text-xs font-medium leading-5 text-slate-600">{note.note}</p>
           </article>
         ))}
       </div>
@@ -676,23 +910,11 @@ function InternalNotes() {
       />
       <button
         type="button"
-        onClick={() => {
-          const trimmed = draft.trim();
-          if (!trimmed) return;
-          setNotes((current) => [
-            {
-              id: `${Date.now()}`,
-              author: 'Current User',
-              text: trimmed,
-              createdAt: 'Just now',
-            },
-            ...current,
-          ]);
-          setDraft('');
-        }}
-        className="mt-2 w-full rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300"
+        disabled={saving}
+        onClick={addNote}
+        className="mt-2 w-full rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300 disabled:cursor-not-allowed disabled:bg-slate-300"
       >
-        Add Internal Note
+        {saving ? 'Adding Note...' : 'Add Internal Note'}
       </button>
     </section>
   );
@@ -701,6 +923,7 @@ function InternalNotes() {
 export default function LeadOperationsWorkspace({
   lead,
   insights,
+  onRefresh,
 }: Props) {
   const [activeFilter, setActiveFilter] = useState<EventCategory>('all');
   const groups = useMemo(() => groupEvents(lead.events ?? []), [lead.events]);
@@ -713,9 +936,9 @@ export default function LeadOperationsWorkspace({
         <LeadHeader lead={lead} heat={heat} lastActivity={lastActivity} insights={insights} />
 
         <section className="grid min-h-0 gap-3 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[292px_minmax(0,1fr)_340px]">
-          <LeadProfileRail lead={lead} heat={heat} />
+          <LeadProfileRail lead={lead} heat={heat} onRefresh={onRefresh} />
           <Timeline groups={groups} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
-          <IntelligenceRail lead={lead} heat={heat} groups={groups} insights={insights} />
+          <IntelligenceRail lead={lead} heat={heat} groups={groups} insights={insights} onRefresh={onRefresh} />
         </section>
       </div>
     </main>

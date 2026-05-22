@@ -6,10 +6,14 @@ import {
 import { PrismaService } from '../../database/prisma.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
+import { VerificationService } from './verification.service';
 
 @Injectable()
 export class LeadsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly verificationService: VerificationService,
+  ) {}
 
   async createLead(createLeadDto: CreateLeadDto) {
     const existingLead = await this.prisma.lead.findUnique({
@@ -83,6 +87,17 @@ export class LeadsService {
   }
 
   async getLeadById(id: string) {
+    const leadExists = await this.prisma.lead.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!leadExists) {
+      throw new NotFoundException('Lead not found');
+    }
+
+    await this.verificationService.ensureChecklist(id);
+
     const lead = await this.prisma.lead.findUnique({
       where: { id },
       include: {
@@ -97,23 +112,29 @@ export class LeadsService {
             createdAt: 'desc',
           },
         },
+        verificationItems: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
+        underwritingNotes: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
       },
     });
 
-    if (!lead) {
-      throw new NotFoundException('Lead not found');
-    }
-
-    if (!lead.assignedTo) {
+    if (!lead!.assignedTo) {
       return {
-        ...lead,
+        ...lead!,
         advisor: null,
       };
     }
 
     const advisor = await this.prisma.salesAgent.findUnique({
       where: {
-        id: lead.assignedTo,
+        id: lead!.assignedTo,
       },
       select: {
         id: true,
@@ -124,7 +145,7 @@ export class LeadsService {
     });
 
     return {
-      ...lead,
+      ...lead!,
       advisor,
     };
   }

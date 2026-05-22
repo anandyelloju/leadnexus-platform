@@ -10,6 +10,8 @@ export interface DashboardAiInput {
   fraudRiskCount: number;
   slaBreaches: number;
   engagementTrend: number;
+  approvalQueue?: number;
+  convertedToday?: number;
   topRecommendation: string;
   insights: string[];
 }

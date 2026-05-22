@@ -4,6 +4,10 @@ interface Props {
     hotLeads: number;
     convertedLeads: number;
     pendingActions: number;
+    verificationQueue?: number;
+    approvalQueue?: number;
+    pendingCallbacks?: number;
+    riskAlerts?: number;
   };
 }
 
@@ -26,13 +30,13 @@ export default function SummaryCards({
     {
       title: 'Converted',
       value: summary.convertedLeads,
-      trend: '+6 this week',
+      trend: 'Manual conversion',
       tone: 'text-emerald-700',
     },
     {
-      title: 'Pending Actions',
-      value: summary.pendingActions,
-      trend: 'Needs review',
+      title: 'Verification Queue',
+      value: summary.verificationQueue ?? summary.pendingActions,
+      trend: `${summary.approvalQueue ?? 0} awaiting approval`,
       tone: 'text-amber-700',
     },
   ];

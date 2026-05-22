@@ -22,9 +22,27 @@ export class RecommendationEngine {
       lead,
       'DOCUMENT_UPLOADED',
     );
+    const verificationCompletion =
+      this.behavioralScoring.getVerificationCompletion(lead);
+
+    if (lead.currentStage === 'APPROVED') {
+      return 'Convert Lead after final customer confirmation';
+    }
+
+    if (lead.currentStage === 'VERIFIED') {
+      return 'Approve Lead';
+    }
+
+    if (lead.currentStage === 'UNDER_REVIEW' && verificationCompletion < 1) {
+      return 'Complete verification checklist before decision';
+    }
 
     if (riskLevel === 'High') {
-      return 'Route to manual underwriting before advisor assignment';
+      return 'Manual Review Required';
+    }
+
+    if (verificationCompletion === 1 && conversionProbability >= 70) {
+      return 'Approve Lead';
     }
 
     if (callbackIntent === 'High' && conversionProbability >= 65) {

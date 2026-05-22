@@ -3,6 +3,11 @@ export interface DashboardSummary {
   hotLeads: number;
   convertedLeads: number;
   pendingActions: number;
+  verificationQueue?: number;
+  approvalQueue?: number;
+  pendingCallbacks?: number;
+  riskAlerts?: number;
+  rejectedLeads?: number;
 }
 
 export interface FunnelMetric {
@@ -29,6 +34,8 @@ export interface DashboardInsights {
   fraudRiskCount: number;
   slaBreaches: number;
   engagementTrend: number;
+  approvalQueue?: number;
+  convertedToday?: number;
   topRecommendation: string;
   insights: string[];
   provider?: string;

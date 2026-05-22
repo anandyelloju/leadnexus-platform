@@ -33,6 +33,18 @@ export class RiskAnalysisService {
       this.behavioralScoring.countEvents(lead, 'OTP_FAILED') +
       this.behavioralScoring.countEvents(lead, 'OTP_ATTEMPTED');
     const ratio = this.behavioralScoring.getIncomeLoanRatio(lead);
+    const salaryEvents = (lead.events ?? []).filter(
+      (event) => event.eventType === 'SALARY_ENTERED',
+    );
+    const inconsistentSalary = salaryEvents.some((event) => {
+      if (!event.metadata || typeof event.metadata !== 'object' || !lead.salary) {
+        return false;
+      }
+
+      const salary = (event.metadata as Record<string, unknown>).salary;
+
+      return typeof salary === 'number' && Math.abs(salary - lead.salary) > 5000;
+    });
 
     if (abandonedForms > 0) {
       warnings.push('Application abandonment requires advisor review');
@@ -44,6 +56,10 @@ export class RiskAnalysisService {
 
     if (ratio && ratio > 0.65) {
       warnings.push('Salary-to-loan ratio exceeds underwriting threshold');
+    }
+
+    if (inconsistentSalary) {
+      warnings.push('Inconsistent salary information across application events');
     }
 
     if (

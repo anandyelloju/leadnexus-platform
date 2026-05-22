@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 export interface IntelligenceEvent {
   eventType: string;
   createdAt: Date;
+  metadata?: unknown;
 }
 
 export interface IntelligenceScore {
@@ -31,6 +32,7 @@ export interface IntelligenceLead {
   events?: IntelligenceEvent[];
   actions?: IntelligenceAction[];
   scores?: IntelligenceScore | null;
+  verificationItems?: Array<{ completed: boolean; key?: string; label?: string }>;
 }
 
 @Injectable()
@@ -76,6 +78,7 @@ export class BehavioralScoringService {
     const score = this.normalizeScore(lead.scores?.finalScore);
     const intent = this.getCallbackIntent(lead);
     const documentUploads = this.countEvents(lead, 'DOCUMENT_UPLOADED');
+    const verificationProgress = this.getVerificationCompletion(lead);
     const onboardingSignals =
       this.countEvents(lead, 'FORM_STARTED') +
       this.countEvents(lead, 'SALARY_ENTERED') +
@@ -90,6 +93,7 @@ export class BehavioralScoringService {
       : 0;
     const callbackSignal = intent === 'High' ? 14 : intent === 'Medium' ? 8 : 0;
     const documentSignal = Math.min(documentUploads * 8, 16);
+    const verificationSignal = Math.round(verificationProgress * 14);
     const onboardingSignal = Math.min(onboardingSignals * 5, 18);
     const engagementSignal = Math.min(emiUses * 4, 12);
 
@@ -102,6 +106,7 @@ export class BehavioralScoringService {
             salarySignal +
             callbackSignal +
             documentSignal +
+            verificationSignal +
             onboardingSignal +
             engagementSignal,
         ),
@@ -112,5 +117,15 @@ export class BehavioralScoringService {
   getIncomeLoanRatio(lead: IntelligenceLead) {
     if (!lead.salary || !lead.loanAmount) return null;
     return lead.loanAmount / (lead.salary * 12);
+  }
+
+  getVerificationCompletion(lead: IntelligenceLead) {
+    const items = lead.verificationItems ?? [];
+
+    if (items.length === 0) {
+      return this.hasEvent(lead, 'DOCUMENT_UPLOADED') ? 0.35 : 0;
+    }
+
+    return items.filter((item) => item.completed).length / items.length;
   }
 }

@@ -28,6 +28,7 @@ export class LeadInsightsService {
         events: true,
         scores: true,
         actions: true,
+        verificationItems: true,
       },
     })) as IntelligenceLead | null;
 
@@ -97,7 +98,20 @@ export class LeadInsightsService {
       insights.push('Document verification is pending');
     }
 
-    return insights;
+    const verificationCompletion =
+      this.behavioralScoring.getVerificationCompletion(lead);
+
+    if (lead.currentStage === 'APPROVED') {
+      insights.push('Human approval complete; conversion requires staff action');
+    } else if (verificationCompletion === 1) {
+      insights.push('Verification checklist complete for approval decision');
+    } else if (verificationCompletion > 0) {
+      insights.push(
+        `${Math.round(verificationCompletion * 100)}% verification checklist completion`,
+      );
+    }
+
+    return insights.slice(0, 4);
   }
 
   private getConfidence(lead: IntelligenceLead, conversionProbability: number) {
@@ -117,10 +131,8 @@ export class LeadInsightsService {
     const callbackEvent = (lead.events ?? [])
       .filter((event) => event.eventType === 'CALLBACK_REQUESTED')
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
-    const documentsUploaded = this.behavioralScoring.hasEvent(
-      lead,
-      'DOCUMENT_UPLOADED',
-    );
+    const verificationCompletion =
+      this.behavioralScoring.getVerificationCompletion(lead);
 
     return {
       callback: callbackEvent
@@ -131,8 +143,11 @@ export class LeadInsightsService {
           ? 'red'
           : 'amber'
         : 'slate',
-      verification: documentsUploaded ? 'Complete' : 'Pending',
-      verificationTone: documentsUploaded ? 'green' : 'amber',
+      verification:
+        verificationCompletion === 1
+          ? 'Complete'
+          : `${Math.round(verificationCompletion * 100)}% done`,
+      verificationTone: verificationCompletion === 1 ? 'green' : 'amber',
     };
   }
 

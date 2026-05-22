@@ -11,12 +11,14 @@ export class DashboardService {
     const stages: LeadStage[] = [
       LeadStage.NEW,
       LeadStage.ENGAGED,
-      LeadStage.INTERESTED,
-      LeadStage.QUALIFIED,
       LeadStage.HOT,
       LeadStage.APPLICATION_STARTED,
-      LeadStage.DROPPED,
+      LeadStage.DOCUMENTS_PENDING,
+      LeadStage.UNDER_REVIEW,
+      LeadStage.VERIFIED,
+      LeadStage.APPROVED,
       LeadStage.CONVERTED,
+      LeadStage.REJECTED,
     ];
 
     const metrics = await Promise.all(
@@ -41,7 +43,7 @@ export class DashboardService {
     return this.prisma.lead.findMany({
       where: {
         currentStage: {
-          in: ['HOT', 'QUALIFIED'],
+          in: ['HOT', 'APPLICATION_STARTED', 'DOCUMENTS_PENDING'],
         },
       },
       include: {
@@ -89,12 +91,49 @@ export class DashboardService {
         status: 'PENDING',
       },
     });
+    const verificationQueue = await this.prisma.lead.count({
+      where: {
+        currentStage: {
+          in: ['DOCUMENTS_PENDING', 'UNDER_REVIEW'],
+        },
+      },
+    });
+    const approvalQueue = await this.prisma.lead.count({
+      where: {
+        currentStage: 'VERIFIED',
+      },
+    });
+    const rejectedLeads = await this.prisma.lead.count({
+      where: {
+        currentStage: 'REJECTED',
+      },
+    });
+    const pendingCallbacks = await this.prisma.leadAction.count({
+      where: {
+        status: 'PENDING',
+        actionType: {
+          contains: 'CALLBACK',
+        },
+      },
+    });
+    const riskAlerts = await this.prisma.leadScore.count({
+      where: {
+        riskScore: {
+          lte: -20,
+        },
+      },
+    });
 
     return {
       totalLeads,
       hotLeads,
       convertedLeads,
       pendingActions,
+      verificationQueue,
+      approvalQueue,
+      pendingCallbacks,
+      riskAlerts,
+      rejectedLeads,
     };
   }
 }
